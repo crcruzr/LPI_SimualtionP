@@ -1,8 +1,10 @@
 # Ignore these
 00RawData/*
 01Scripts/*
-03ProcessedData/*
-02Manuscript/*
+02Documents/*
+03OutData/*
+04Plots/*
+lpi_temp/*
 
 # Don't ignore these
 # !00RawData/ColDP.csv Example
