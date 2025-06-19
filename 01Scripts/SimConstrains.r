@@ -13,11 +13,21 @@ exroute <- '04Plots/'
 #functions 
 load('01Scripts/functionsLPIT.RData')
 
+#Verify folders
+folders <- c(
+  "constrain/Zeropermutation",
+  "Zeropermutation/results",
+  "constrain/napermutations",
+  "napermutations/results"
+)
+
+invisible(lapply(unique(c(dirname(folders), folders)), function(f) 
+  if (!dir.exists(f)) dir.create(f, recursive = TRUE)))
+
 # Set the random seed to replicate the stochastic process in the manuscript
 set.seed(42)
 years <- 1950:2020 ## Modified to add the same number of years in the LPI
 S <- 32680 ## Modified to add the same number of rows in the LPI
-
 
 #Real LPI data
 lpi_data <- read.csv('00RawData/LPD2022_public.csv')
@@ -62,8 +72,6 @@ lpi_data_filtered <- bino_id(lpi_data_filtered, years, S)
 lpi_data_filtered[, (length(years)) + 1] <- paste0('Species', 1:S)
 colnames(lpi_data_filtered) <- c(paste0('X', years), 'Binomial')
 lpi_data_filtered$ID <- 1:nrow(lpi_data_filtered)
-
-
 
 # Compute LPI with the combined dataset
 lpi_combined_result <- LPIMain(
@@ -130,6 +138,7 @@ table(is.na(lpi_data_filteredNAPer[[100]]))
 
 identical(lpi_data_filteredNAPer[[sample(1:100, 1)]], lpi_data_filteredNAPer[[sample(1:100, 1)]])
 
+constrain/napermutations
 ##parallel methods
 for (i in 1:length(lpi_data_filteredNAPer)) {
   saveRDS(lpi_data_filteredNAPer[[i]], file = sprintf("lpi_temp/constrain/napermutations/matrix_%03d.rds", i))
@@ -216,7 +225,7 @@ identical(lpi_data_filtered0Per[[sample(1:100, 1)]], lpi_data_filtered0Per[[samp
 
 ## parallel method
 for (i in 1:length(lpi_data_filtered0Per)) {
-  saveRDS(lpi_data_filtered0Per[[i]], file = sprintf("lpi_temp/constrain/Zeropermutation/lpi_data_split/matrix_%03d.rds", i))
+  saveRDS(lpi_data_filtered0Per[[i]], file = sprintf("lpi_temp/constrain/Zeropermutation/matrix_%03d.rds", i))
 }
 
 plan(multisession, workers = 6) 
@@ -234,11 +243,9 @@ resultsPermu0 <- future_lapply(1:length(lpi_data_filtered0Per), function(w) {
 
 #load RDS with results
 resultsPermu01 <- lapply(1:length(lpi_data_filtered0Per), function(i) {
-  readRDS(sprintf("lpi_temp/constrain/Zeropermutation/lpi_data_split/results/permutation_result_%03d.rds", i))
+  readRDS(sprintf("lpi_temp/constrain/Zeropermutation/results/permutation_result_%03d.rds", i))
 })
 ggplot_lpi(resultsPermu01[[1]])
-
-
 
 ggplot_multi_lpi(resultsPermu01)+
   theme(legend.position = "none")
