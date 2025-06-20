@@ -6,7 +6,6 @@ library(future.apply)
 library(data.table)
 library(patchwork)
 
-setwd('/Users/ccruzr/Library/Mobile Documents/com~apple~CloudDocs/Cristian/Documents/Estudios/Postgrado/PhD/Projects/LPI_SimualtionP')
 route <- '03OutData/'
 exroute <- '04Plots/'
 
@@ -15,14 +14,17 @@ load('01Scripts/functionsLPIT.RData')
 
 #Verify folders
 folders <- c(
-  "constrain/Zeropermutation",
-  "Zeropermutation/results",
-  "constrain/napermutations",
-  "napermutations/results"
+  "lpi_temp/constrain/Zeropermutation/",
+  "Zeropermutation/results/",
+  "lpi_temp/constrain/napermutations/",
+  "napermutations/results/"
 )
 
-invisible(lapply(unique(c(dirname(folders), folders)), function(f) 
-  if (!dir.exists(f)) dir.create(f, recursive = TRUE)))
+for (folder in folders) {
+  if (!dir.exists(folder)) {
+    dir.create(folder, recursive = TRUE)
+  }
+}
 
 # Set the random seed to replicate the stochastic process in the manuscript
 set.seed(42)
@@ -80,8 +82,6 @@ lpi_combined_result <- LPIMain(
   title = 'LPI Results Simulated Data - Real Dataset', REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
 lpi_combined_result$years <- years
-
-names(lpi_combined_result2) <- c('years', 'LPI_final','CI_low',  'CI_high' )
 
 colr <- c("#9467bd", "#c5b0d5")  # Purple + lighter purple
 

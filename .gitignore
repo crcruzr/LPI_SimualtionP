@@ -8,6 +8,7 @@ lpi_temp/*
 #Server
 jobs/*
 narval.sh
+.Rproj.user
 
 # Don't ignore these
 # !00RawData/ColDP.csv Example
