@@ -1,9 +1,13 @@
-# Ignore these
+# Local
 00RawData/*
 02Documents/*
 03OutData/*
 04Plots/*
 lpi_temp/*
+
+#Server
+jobs/*
+narval.sh
 
 # Don't ignore these
 # !00RawData/ColDP.csv Example
