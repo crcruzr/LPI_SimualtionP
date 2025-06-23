@@ -62,7 +62,9 @@ lpi_data_filteredNA <- bino_id(lpi_data_filteredNA, years, S)
 lpi_data_filteredNA <- lpi_data_filteredNA[, !names(lpi_data_filteredNA) %in% c('Binomial', 'ID')]
 lpi_data_filteredNAPer <- permutationLPI(lpi_data_filteredNA, nperm = 100, shuffle_zeros = FALSE, shuffle_NA = TRUE , years, S)
 
-## define numer of workers
+## parallel method
+plan(multicore, workers = availableCores())
+options(future.globals.maxSize = floor(251 /  availableCores()) * 1024^3) ## commented to use in computer of canada
 
 system.time({
   resultsPermuNA <- future_lapply(1:length(lpi_data_filteredNAPer), function(w) { #

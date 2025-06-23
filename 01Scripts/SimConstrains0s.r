@@ -62,6 +62,9 @@ lpi_data_filtered02 <- lpi_data_filtered0[, !names(lpi_data_filtered0) %in% c('B
 
 lpi_data_filtered0Per <- permutationLPI(lpi_data_filtered02, nperm = 100, shuffle_zeros = TRUE, shuffle_NA = FALSE, years = years, S = S)
 
+## parallel method
+plan(multicore, workers = availableCores())
+options(future.globals.maxSize = floor(251 /  availableCores()) * 1024^3) ## commented to use in computer of canada
 
 resultsPermu0 <- future_lapply(1:length(lpi_data_filtered0Per), function(w) {
   process_permutation(
