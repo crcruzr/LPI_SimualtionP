@@ -66,7 +66,7 @@ lpi_data_filtered0Per <- permutationLPI(lpi_data_filtered02, nperm = 100, shuffl
 resultsPermu0 <- future_lapply(1:length(lpi_data_filtered0Per), function(w) {
   process_permutation(
     w, 
-    data_list = lpi_data_filteredNAPer,
+    data_list = lpi_data_filtered0Per,
     base_path = "lpi_temp/constrain/Zeropermutation/", 
     title_prefix = "LPI Results Simulated Data - Real Dataset - Only Zero - permut")
 })
@@ -87,7 +87,7 @@ for (i in seq_along(resultsPermu01)) {
 colr <- c("#1f77b4", "#aec7e8")  # Blue + lighter blue
 
 p4b <- ggplot(
-  purrr::map_df(seq_along(resultsPermuNA), ~ mutate(resultsPermuNA[[.x]], sim = .x, label = "Simulation with NA of the Real data")),
+  purrr::map_df(seq_along(resultsPermu0), ~ mutate(resultsPermu0[[.x]], sim = .x, label = "Simulation with NA of the Real data")),
   aes(x = years, y = LPI_final, group = sim)
 ) +
   geom_ribbon(aes(ymin = CI_low, ymax = CI_high, fill = label), alpha = 0.2, color = NA) +
