@@ -68,7 +68,7 @@ plan(multicore, workers = availableCores())
 options(future.globals.maxSize = floor(251 /  availableCores()) * 1024^3) ## commented to use in computer of canada
 
 args = commandArgs(trailingOnly=TRUE)
-no <- args[1]
+no <- as.numeri(args[1])
 #nos <- seq(no, by = 25, length.out = 4)
 
 resultsPermu0 <- future_lapply(no, function(w) {
