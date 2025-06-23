@@ -14,10 +14,8 @@ load('01Scripts/functionsLPIT.RData')
 
 #Verify folders
 folders <- c(
-  "lpi_temp/constrain/Zeropermutation/",
-  "Zeropermutation/results/",
-  "lpi_temp/constrain/napermutations/",
-  "napermutations/results/"
+  "lpi_temp/constrain/Zeropermutation/results/",
+  "lpi_temp/constrain/napermutations/results/"
 )
 
 for (folder in folders) {
@@ -138,23 +136,25 @@ table(is.na(lpi_data_filteredNAPer[[100]]))
 
 identical(lpi_data_filteredNAPer[[sample(1:100, 1)]], lpi_data_filteredNAPer[[sample(1:100, 1)]])
 
-constrain/napermutations
 ##parallel methods
 for (i in 1:length(lpi_data_filteredNAPer)) {
   saveRDS(lpi_data_filteredNAPer[[i]], file = sprintf("lpi_temp/constrain/napermutations/matrix_%03d.rds", i))
 }
 
-plan(multisession, workers = 3) 
-options(future.globals.maxSize = 4 * 1024^3) 
+parallel::detectCores() #workers
+round(as.numeric(gsub("[^0-9]", "", system("grep MemTotal /proc/meminfo", intern = TRUE))) / 1024^2, 2) # In gb
 
+plan(multicore, workers = availableCores())
+#options(future.globals.maxSize = floor(251 /  availableCores()) * 1024^3)
 
-resultsPermuNA <- future_lapply(1:length(lpi_data_filteredNAPer), function(w) {
-  process_permutation(
-    w = w,
-    data_list = lpi_data_filteredNAPer,
-    base_path = "lpi_temp/constrain/napermutations/",
-    title_prefix = "LPI Results Simulated Data - Real Dataset - Only NA - permut"
-  )
+system.time({
+  resultsPermuNA <- future_lapply(1:length(lpi_data_filteredNAPer), function(w) { #
+    process_permutation(
+      w = w,
+      data_list = lpi_data_filteredNAPer,
+      base_path = "lpi_temp/constrain/napermutations",
+      title_prefix = "LPI Results Simulated Data - Real Dataset - Only NA - permut"
+    ) })
 })
 
 for (i in seq_along(resultsPermuNA)) {
@@ -182,25 +182,25 @@ p4b <- ggplot(
   scale_color_manual(name = NULL, values = setNames(colr[1], "Simulation with NA of the Real data")) +
   geom_hline(yintercept = 1, linetype = "solid", size = 1, color = "#666666") +
   coord_cartesian(ylim = c(0.0, 2)) +
- scale_x_continuous(breaks = seq(1950, 2020, by = 10), expand = c(0.03, 0.05)) +
-    scale_y_continuous(limits = c(0, 2), expand = c(0.05, 0.002)) +
-       guides(color = guide_legend(override.aes = list(fill = colr[2], color = colr[1], size = 15, alpha = 0.2))) +
- labs(x = "Year", y = "Index", title = "") +
-      geom_vline(xintercept = 1950, color = "gray80", size = 0.5) +
-    geom_hline(yintercept = 0, color = "gray80", size = 0.5) +
-    theme(
-      panel.background = element_rect(fill = "white"),
-      panel.border = element_rect(color = "black", fill = NA, size = 0.8),
-      axis.title = element_text(size = 25),
-      axis.text.x = element_text(size = 20, hjust = 0.5, margin = margin(t = 5), angle = 0),
-      axis.text.y = element_text(size = 20),
-      axis.ticks.x = element_line(size = 0.8, color = "black"),
-      axis.ticks.y = element_line(size = 0.8, color = "black"),
-      legend.text = element_text(size = 25),
-      legend.position = c(0.75, 0.8),
-      panel.grid.major.y = element_line(size = 0.4, color = "gray80"),
-      panel.grid.major.x = element_line(size = 0.4, color = "gray90")
-    )
+  scale_x_continuous(breaks = seq(1950, 2020, by = 10), expand = c(0.03, 0.05)) +
+  scale_y_continuous(limits = c(0, 2), expand = c(0.05, 0.002)) +
+  guides(color = guide_legend(override.aes = list(fill = colr[2], color = colr[1], size = 15, alpha = 0.2))) +
+  labs(x = "Year", y = "Index", title = "") +
+  geom_vline(xintercept = 1950, color = "gray80", size = 0.5) +
+  geom_hline(yintercept = 0, color = "gray80", size = 0.5) +
+  theme(
+    panel.background = element_rect(fill = "white"),
+    panel.border = element_rect(color = "black", fill = NA, size = 0.8),
+    axis.title = element_text(size = 25),
+    axis.text.x = element_text(size = 20, hjust = 0.5, margin = margin(t = 5), angle = 0),
+    axis.text.y = element_text(size = 20),
+    axis.ticks.x = element_line(size = 0.8, color = "black"),
+    axis.ticks.y = element_line(size = 0.8, color = "black"),
+    legend.text = element_text(size = 25),
+    legend.position = c(0.75, 0.8),
+    panel.grid.major.y = element_line(size = 0.4, color = "gray80"),
+    panel.grid.major.x = element_line(size = 0.4, color = "gray90")
+  )
 
 p4b
 
@@ -267,7 +267,7 @@ ggplot(
   geom_line(color = colr[1],  size = 1) +
   geom_hline(yintercept = 1, linetype = "solid", size = 1, color = "#666666") +
   coord_cartesian(ylim = c(0.65, 1.7)) +
- scale_x_continuous(breaks = seq(1950, 2020, by = 5), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(1950, 2020, by = 5), expand = c(0, 0)) +
   theme_minimal() +
   labs(x = "Year", y = "Value", title = "Simulated data, Zero remplacing")+
   theme(
@@ -286,25 +286,25 @@ p5 <- ggplot(
   scale_color_manual(name = NULL, values = setNames(colr[1], "Simulation with Zeros of the Real data")) +
   geom_hline(yintercept = 1, linetype = "solid", size = 1, color = "#666666") +
   coord_cartesian(ylim = c(0.0, 2)) +
- scale_x_continuous(breaks = seq(1950, 2020, by = 10), expand = c(0.03, 0.05)) +
-    scale_y_continuous(limits = c(0, 2), expand = c(0.05, 0.002)) +
-       guides(color = guide_legend(override.aes = list(fill = colr[2], color = colr[1], size = 15, alpha = 0.2))) +
- labs(x = "Year", y = "Index", title = "") +
-      geom_vline(xintercept = 1950, color = "gray80", size = 0.5) +
-    geom_hline(yintercept = 0, color = "gray80", size = 0.5) +
-    theme(
-      panel.background = element_rect(fill = "white"),
-      panel.border = element_rect(color = "black", fill = NA, size = 0.8),
-      axis.title = element_text(size = 25),
-      axis.text.x = element_text(size = 20, hjust = 0.5, margin = margin(t = 5), angle = 0),
-      axis.text.y = element_text(size = 20),
-      axis.ticks.x = element_line(size = 0.8, color = "black"),
-      axis.ticks.y = element_line(size = 0.8, color = "black"),
-      legend.text = element_text(size = 25),
-      legend.position = c(0.75, 0.8),
-      panel.grid.major.y = element_line(size = 0.4, color = "gray80"),
-      panel.grid.major.x = element_line(size = 0.4, color = "gray90")
-    )
+  scale_x_continuous(breaks = seq(1950, 2020, by = 10), expand = c(0.03, 0.05)) +
+  scale_y_continuous(limits = c(0, 2), expand = c(0.05, 0.002)) +
+  guides(color = guide_legend(override.aes = list(fill = colr[2], color = colr[1], size = 15, alpha = 0.2))) +
+  labs(x = "Year", y = "Index", title = "") +
+  geom_vline(xintercept = 1950, color = "gray80", size = 0.5) +
+  geom_hline(yintercept = 0, color = "gray80", size = 0.5) +
+  theme(
+    panel.background = element_rect(fill = "white"),
+    panel.border = element_rect(color = "black", fill = NA, size = 0.8),
+    axis.title = element_text(size = 25),
+    axis.text.x = element_text(size = 20, hjust = 0.5, margin = margin(t = 5), angle = 0),
+    axis.text.y = element_text(size = 20),
+    axis.ticks.x = element_line(size = 0.8, color = "black"),
+    axis.ticks.y = element_line(size = 0.8, color = "black"),
+    legend.text = element_text(size = 25),
+    legend.position = c(0.75, 0.8),
+    panel.grid.major.y = element_line(size = 0.4, color = "gray80"),
+    panel.grid.major.x = element_line(size = 0.4, color = "gray90")
+  )
 
 ggsave(filename=paste0( exroute, "/Fig5.jpeg"), p5, dpi = 300) 
 
