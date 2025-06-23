@@ -142,10 +142,10 @@ for (i in 1:length(lpi_data_filteredNAPer)) {
 }
 
 parallel::detectCores() #workers
-round(as.numeric(gsub("[^0-9]", "", system("grep MemTotal /proc/meminfo", intern = TRUE))) / 1024^2, 2) # In gb
+#round(as.numeric(gsub("[^0-9]", "", system("grep MemTotal /proc/meminfo", intern = TRUE))) / 1024^2, 2) # In gb
 
 plan(multicore, workers = availableCores())
-#options(future.globals.maxSize = floor(251 /  availableCores()) * 1024^3)
+#options(future.globals.maxSize = floor(251 /  availableCores()) * 1024^3) ## commented to use in computer of canada
 
 system.time({
   resultsPermuNA <- future_lapply(1:length(lpi_data_filteredNAPer), function(w) { #
@@ -228,8 +228,8 @@ for (i in 1:length(lpi_data_filtered0Per)) {
   saveRDS(lpi_data_filtered0Per[[i]], file = sprintf("lpi_temp/constrain/Zeropermutation/matrix_%03d.rds", i))
 }
 
-plan(multisession, workers = 6) 
-options(future.globals.maxSize = 4 * 1024^3) 
+plan(multicore, workers = availableCores())
+#options(future.globals.maxSize = floor(251 /  availableCores()) * 1024^3) ## commented to use in computer of canada
 
 resultsPermu0 <- future_lapply(1:length(lpi_data_filtered0Per), function(w) {
   process_permutation(
