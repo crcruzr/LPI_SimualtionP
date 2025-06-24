@@ -105,13 +105,13 @@ plot_lpi <- function(data, colr, label_name = "LPIX") {
 #function toparalelize theprocesess
 
 
-process_permutation <- function(w = 1, data_list, base_path = getwd(), 
+process_permutation <- function(w = 1, base_path = getwd(), 
                                 title_prefix = "LPI Results") {
   mat <- readRDS(sprintf("%s/matrix_%03d.rds", base_path, w))
   
   result <- LPIMain(
     create_infile(
-      data_list[[w]],
+      mat,
       index_vector = TRUE,
       name = paste0(base_path, "/", w),
       start_col_name = "X1950",
