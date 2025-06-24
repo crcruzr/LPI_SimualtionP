@@ -65,6 +65,9 @@ options(future.globals.maxSize = floor(251 /  availableCores()) * 1024^3) ## com
 args = commandArgs(trailingOnly=TRUE)
 no <- as.numeric(args[1])
 #nos <- seq(no, by = 25, length.out = 4)
+args = commandArgs(trailingOnly=TRUE)
+no <- as.numeric(args[1])
+nos <- seq(no, 100, by = 50)
 
 resultsPermu0 <- future_lapply(no, function(w) {
   process_permutation(
