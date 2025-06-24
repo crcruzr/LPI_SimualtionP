@@ -132,8 +132,6 @@ process_permutation <- function(w = 1, base_path = getwd(),
   return(result)
 }
 
-
-setwd('/Users/ccruzr/Library/Mobile Documents/com~apple~CloudDocs/Cristian/Documents/Estudios/Postgrado/PhD/Projects/LPI_SimualtionP')
 routeX <- '01Scripts/'
 
 save.image(file =  paste0( "01Scripts/functionsLPIT.RData"))
