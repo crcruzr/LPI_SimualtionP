@@ -123,7 +123,7 @@ process_permutation <- function(w = 1, data_list, base_path = getwd(),
     PLOT_MAX = 2019,
     BOOT_STRAP_SIZE = 10,
     VERBOSE = FALSE,  
-    SHOW_PROGRESS = FALSE
+    SHOW_PROGRESS = TRUE
   )
   
   message("Completed permutation ", w)
