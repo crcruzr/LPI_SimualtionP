@@ -59,8 +59,6 @@ lpi_data_filteredNA <- bino_id(lpi_data_filteredNA, years, S)
 ######
 # I did 100 permutations per approach to compare with the null model
 # NAs permutations
-#lpi_data_filteredNA <- lpi_data_filteredNA[, !names(lpi_data_filteredNA) %in% c('Binomial', 'ID')]
-#lpi_data_filteredNAPer <- permutationLPI(lpi_data_filteredNA, nperm = 100, shuffle_zeros = FALSE, shuffle_NA = TRUE , years, S)
 
 ## parallel method
 plan(multicore, workers = availableCores())
@@ -68,10 +66,10 @@ options(future.globals.maxSize = floor(251 /  availableCores()) * 1024^3) ## com
 
 args = commandArgs(trailingOnly=TRUE)
 no <- as.numeric(args[1])
-#nos <- seq(no, by = 25, length.out = 4)
+nos <- seq(no, 100, by = 50)
 
 #do the LPI
-resultsPermuNA <- future_lapply(no, function(w) { #
+resultsPermuNA <- future_lapply(nos, function(w) { #
     process_permutation(
       w = w,
       base_path = "lpi_temp/constrain/napermutations",
