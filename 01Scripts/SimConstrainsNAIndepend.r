@@ -71,36 +71,6 @@ no <- as.numeric(args[1])
 #nos <- seq(no, by = 25, length.out = 4)
 
 #do the LPI
-process_permutation <- function(w = 1, base_path = getwd(), 
-                                title_prefix = "LPI Results") {
-
-  mat <- readRDS(sprintf("%s/matrix_%03d.rds", base_path, w))
-  
-  result <- LPIMain(
-    create_infile(
-      mat,
-      index_vector = TRUE,
-      name = paste0(base_path, "/", w),
-      start_col_name = "X1950",
-      end_col_name = "X2019",
-      CUT_OFF_YEAR = 1950
-    ),
-    title = paste(title_prefix, w),
-    REF_YEAR = 1950,
-    PLOT_MAX = 2019,
-    BOOT_STRAP_SIZE = 10,
-    VERBOSE = FALSE,  
-    SHOW_PROGRESS = FALSE
-  )
-  
-  message("Completed permutation ", w)
-  saveRDS(result, file = sprintf("%s/results/permutation_result_%03d.rds", base_path, w))
-  
-  return(result)
-}
-
-
-
 resultsPermuNA <- future_lapply(no, function(w) { #
     process_permutation(
       w = w,

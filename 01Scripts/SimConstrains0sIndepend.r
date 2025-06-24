@@ -58,11 +58,6 @@ lpi_data_filtered0 <- bino_id(lpi_data_filtered0, years, S)
 ###0s permutations
 #####
 
-lpi_data_filtered02 <- lpi_data_filtered0[, !names(lpi_data_filtered0) %in% c('Binomial', 'ID')]
-
-lpi_data_filtered0Per <- permutationLPI(lpi_data_filtered02, nperm = 100, shuffle_zeros = TRUE, shuffle_NA = FALSE, years = years, S = S)
-
-
 ## parallel method
 plan(multicore, workers = availableCores())
 options(future.globals.maxSize = floor(251 /  availableCores()) * 1024^3) ## commented to use in computer of canada
@@ -74,7 +69,6 @@ no <- as.numeric(args[1])
 resultsPermu0 <- future_lapply(no, function(w) {
   process_permutation(
     w, 
-    data_list = lpi_data_filtered0Per,
     base_path = "lpi_temp/constrain/Zeropermutation/", 
     title_prefix = "LPI Results Simulated Data - Real Dataset - Only Zero - permut")
 })
