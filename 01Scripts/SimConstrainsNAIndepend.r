@@ -9,7 +9,7 @@ route <- '03OutData/'
 exroute <- '04Plots/'
 
 #functions 
-load('01Scripts/functionsLPIT.RData')
+source('01Scripts/Functions.r')
 
 #Verify folders
 folders <- c(
@@ -68,10 +68,16 @@ args = commandArgs(trailingOnly=TRUE)
 no <- as.numeric(args[1])
 nos <- seq(no, 100, by = 50)
 
+print(paste("Simulation starts at", Sys.time()))
+
 #do the LPI
-resultsPermuNA <- future_lapply(nos, function(w) { #
+future_lapply(nos, function(w) { #
     process_permutation(
       w = w,
       base_path = "lpi_temp/constrain/napermutations",
       title_prefix = "LPI Results Simulated Data - Real Dataset - Only NA - permut")
 })
+
+print(paste("Simulation finnished at", Sys.time()))
+
+

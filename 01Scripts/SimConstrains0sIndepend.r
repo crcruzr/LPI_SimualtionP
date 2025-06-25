@@ -3,7 +3,6 @@ library(rlpi)
 library(future)
 library(future.apply)
 library(data.table)
-library(patchwork)
 
 route <- '03OutData/'
 exroute <- '04Plots/'
@@ -62,18 +61,16 @@ lpi_data_filtered0 <- bino_id(lpi_data_filtered0, years, S)
 plan(multicore, workers = availableCores())
 options(future.globals.maxSize = floor(251 /  availableCores()) * 1024^3) ## commented to use in computer of canada
 
-args = commandArgs(trailingOnly=TRUE)
-no <- as.numeric(args[1])
 #nos <- seq(no, by = 25, length.out = 4)
 args = commandArgs(trailingOnly=TRUE)
 no <- as.numeric(args[1])
 nos <- seq(no, 100, by = 50)
 
-resultsPermu0 <- future_lapply(no, function(w) {
+print(paste("Simulation starts at", Sys.time()))
+future_lapply(nos, function(w) {
   process_permutation(
     w, 
-    base_path = "lpi_temp/constrain/Zeropermutation/", 
+    base_path = "lpi_temp/constrain/Zeropermutations", 
     title_prefix = "LPI Results Simulated Data - Real Dataset - Only Zero - permut")
 })
-
-
+print(paste("Simulation finnished at", Sys.time()))

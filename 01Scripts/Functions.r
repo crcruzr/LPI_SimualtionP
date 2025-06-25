@@ -107,13 +107,24 @@ plot_lpi <- function(data, colr, label_name = "LPIX") {
 
 process_permutation <- function(w = 1, base_path = getwd(), 
                                 title_prefix = "LPI Results") {
-  mat <- readRDS(sprintf("%s/matrix_%03d.rds", base_path, w))
+  
+  # Define input and output directories
+  input_path <- file.path(base_path, "processing", sprintf("It_%d", w))
+  output_dir <- file.path(base_path, "results")
+  
+  # Ensure the results directory exists
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+  
+  # Load the matrix
+  mat <- readRDS(file.path(input_path, sprintf("matrix_%03d.rds", w)))
   
   result <- LPIMain(
     create_infile(
       mat,
       index_vector = TRUE,
-      name = paste0(base_path, "/", w),
+      name = file.path(input_path, as.character(w)),
       start_col_name = "X1950",
       end_col_name = "X2019",
       CUT_OFF_YEAR = 1950
@@ -127,7 +138,7 @@ process_permutation <- function(w = 1, base_path = getwd(),
   )
   
   message("Completed permutation ", w)
-  saveRDS(result, file = sprintf("%s/results/permutation_result_%03d.rds", base_path, w))
+  saveRDS(result, file = file.path(output_dir, sprintf("permutation_result_%03d.rds", w)))
   
   return(result)
 }
