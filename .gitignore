@@ -16,4 +16,5 @@ narval.sh
 # !00RawData/ColDP.csv Example
 !01Scripts/DPMC_Analysis.R
 !02Manuscript/Datapaper endemic, threatened and mammals subject to use.pdf
-!*/.gitkeep
+!.gitkeep
+!lpi_temp/constrain/napermutations/results*

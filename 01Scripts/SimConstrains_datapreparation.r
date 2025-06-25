@@ -77,7 +77,7 @@ for (i in 1:length(lpi_data_filteredNAPer)) {
 ###0s permutations
 #####
 lpi_data_filtered02 <- lpi_data_filtered0[, !names(lpi_data_filtered0) %in% c('Binomial', 'ID')]
-lpi_data_filtered0Per <- permutationLPI(lpi_data_filtered02, nperm = 300, shuffle_zeros = TRUE, shuffle_NA = FALSE, years = years, S = S)
+lpi_data_filtered0Per <- permutationLPI(lpi_data_filtered02, nperm = 1500, shuffle_zeros = TRUE, shuffle_NA = FALSE, years = years, S = S)
 
 
 

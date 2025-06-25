@@ -5,16 +5,13 @@ library('tidyverse')
 years <- 1950:2020 ## Modified to add the same number of years in the LPI
 S <- 32680 ## Modified to add the same number of rows in the LPI
 
-
 ## NA
-
 #load RDS with results
-nf2 <-length(list.files('lpi_temp/constrain/napermutations/results/'))
+nf <-length(list.files('lpi_temp/constrain/napermutations/results/'))
 
 resultsPermuna <- lapply(1:length(nf), function(i) {
   readRDS(sprintf("lpi_temp/constrain/napermutations/results/permutation_result_%03d.rds", i))
 })
-
 
 for (i in seq_along(resultsPermuna)) {
   setDT(resultsPermuna[[i]])  # convert in-place, no warning if already data.table
@@ -56,12 +53,12 @@ p4 <- ggplot(
 p4
 
 ###########################
-
 #load RDS with results
-nf <-length(list.files('lpi_temp/constrain/Zeropermutation/results/'))
 
-resultsPermu01 <- lapply(1:length(nf), function(i) {
-  readRDS(sprintf("lpi_temp/constrain/Zeropermutation/results/permutation_result_%03d.rds", i))
+nf2 <-length(list.files('lpi_temp/constrain/Zeropermutations/results/'))
+
+resultsPermu01 <- lapply(1:length(nf2), function(i) {
+  readRDS(sprintf("lpi_temp/constrain/Zeropermutations/results/permutation_result_%03d.rds", i))
 })
 
 for (i in seq_along(resultsPermu01)) {
@@ -101,8 +98,8 @@ p5 <- ggplot(
 
 p5
 
-ggsave(filename=paste0( exroute, "/Fig5.jpeg"), p5, dpi = 300) 
-ggsave(filename=paste0( exroute, "/Fig4.jpeg"), p4, dpi = 300) 
+ggsave(filename=paste0( "04Plots/Fig5_1.jpeg"), p5, dpi = 300) 
+ggsave(filename=paste0(  "04Plots/Fig4_1.jpeg"), p4, dpi = 300) 
 
 
 
