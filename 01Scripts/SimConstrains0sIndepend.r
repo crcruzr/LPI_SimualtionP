@@ -64,7 +64,8 @@ options(future.globals.maxSize = floor(251 /  availableCores()) * 1024^3) ## com
 #nos <- seq(no, by = 25, length.out = 4)
 args = commandArgs(trailingOnly=TRUE)
 no <- as.numeric(args[1])
-nos <- seq(no, 100, by = 50)
+#nos <- no
+nos <- seq(no, 300, by = 100)
 
 print(paste("Simulation starts at", Sys.time()))
 future_lapply(nos, function(w) {

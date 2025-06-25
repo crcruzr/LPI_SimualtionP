@@ -57,7 +57,7 @@ species_data_final <- species_data_clean[sample(nrow(species_data_clean), nrow(l
 ######
 # NAs permutations
 lpi_data_filteredNA <- lpi_data_filteredNA[, !names(lpi_data_filteredNA) %in% c('Binomial', 'ID')]
-lpi_data_filteredNAPer <- permutationLPI(lpi_data_filteredNA, nperm = 100, shuffle_zeros = FALSE, shuffle_NA = TRUE , years, S)
+lpi_data_filteredNAPer <- permutationLPI(lpi_data_filteredNA, nperm = 300, shuffle_zeros = FALSE, shuffle_NA = TRUE , years, S)
 
 for (i in 1:length(lpi_data_filteredNAPer)) {
   # Create subdirectory path
@@ -77,7 +77,9 @@ for (i in 1:length(lpi_data_filteredNAPer)) {
 ###0s permutations
 #####
 lpi_data_filtered02 <- lpi_data_filtered0[, !names(lpi_data_filtered0) %in% c('Binomial', 'ID')]
-lpi_data_filtered0Per <- permutationLPI(lpi_data_filtered02, nperm = 100, shuffle_zeros = TRUE, shuffle_NA = FALSE, years = years, S = S)
+lpi_data_filtered0Per <- permutationLPI(lpi_data_filtered02, nperm = 300, shuffle_zeros = TRUE, shuffle_NA = FALSE, years = years, S = S)
+
+
 
 for (i in 1:length(lpi_data_filtered0Per)) {
   # Create subdirectory path
@@ -93,26 +95,3 @@ for (i in 1:length(lpi_data_filtered0Per)) {
     file = file.path(subdir, sprintf("matrix_%03d.rds", i))
   )
 }
-
-###########
-### NA Permutations
-lpi_data_filteredNA <- lpi_data_filteredNA[, !names(lpi_data_filteredNA) %in% c('Binomial', 'ID')]
-lpi_data_filteredNAPer <- permutationLPI(lpi_data_filteredNA, nperm = 100, shuffle_zeros = FALSE, shuffle_NA = TRUE , years, S)
-
-for (i in 1:length(lpi_data_filteredNAPer)) {
-  # Create subdirectory path
-  subdir <- sprintf("lpi_temp/constrain/napermutations/processing/It_%d", i)
-  # Create the directory if it doesn't exist
-  if (!dir.exists(subdir)) {
-    dir.create(subdir, recursive = TRUE)
-  }
-  
-  # Save the RDS file in the subdirectory
-  saveRDS(
-    lpi_data_filteredNAPer[[i]],
-    file = file.path(subdir, sprintf("matrix_%03d.rds", i))
-  )
-}
-
-
-
