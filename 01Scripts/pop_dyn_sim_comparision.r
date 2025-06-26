@@ -74,7 +74,7 @@ ggplot_lpi(lpi_result)
 
 colr <- c("#9467bd", "#c5b0d5")  # Purple + lighter purple
 lpi_result$years <- years
-f1S <- plot_lpi(lpi_result, colr = colr, label_name = "Simulation - Full Dataset")
+f1 <- plot_lpi(lpi_result, colr = colr, label_name = "Simulation - Full Dataset")
 
 # Read and process real LPI data
 ###################################
@@ -87,8 +87,8 @@ lpi_resultR <- LPIMain(
 )
 
 lpi_resultR$years <- years
-f1R <- plot_lpi(lpi_resultR, colr = colr, label_name = "Real Dataset")
-f1R
+f2 <- plot_lpi(lpi_resultR, colr = colr, label_name = "Real Dataset")
+f2
 ### Variation in the simulation
 ################################
 
@@ -113,8 +113,8 @@ lpi_simul_real_temp <- LPIMain(
   title = 'LPI Results Simulated Data - real Template', REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
 lpi_simul_real_temp$years <- years
-f1SR <- plot_lpi(lpi_simul_real_temp, colr = colr, label_name = "Simulation - Real Template")
-f1SR
+f3a <- plot_lpi(lpi_simul_real_temp, colr = colr, label_name = "Simulation - Real Template")
+f3a
 
 # Apply window and trends to simulated data
 species_data_window <- species_data_clean[, c(400:470)]
@@ -133,9 +133,13 @@ lpi_window_result <- LPIMain(
 )
 
 lpi_window_result$years <- years
-f1SR2 <- plot_lpi(lpi_window_result, colr = colr, label_name = "Simulation - Real Template II")
-f1SR2
+f3b <- plot_lpi(lpi_window_result, colr = colr, label_name = "Simulation - Real Template II")
+f3b
 
+### END ###
+
+####### Adding only Zeros and NA in simulated Data
+### Past to the constrain script
 
 
 

@@ -8,7 +8,7 @@ route <- '03OutData/'
 exroute <- '04Plots/'
 
 #functions 
-load('01Scripts/functionsLPIT.RData')
+source("01Scripts/Functions.r")
 
 #Verify folders
 folders <- c(

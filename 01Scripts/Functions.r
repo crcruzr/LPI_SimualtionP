@@ -169,7 +169,3 @@ process_permutation <- function(w = 1, base_path = getwd(),
   
   return(result)
 }
-
-routeX <- '01Scripts/'
-
-save.image(file =  paste0( "01Scripts/functionsLPIT.RData"))
