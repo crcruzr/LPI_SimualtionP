@@ -9,8 +9,15 @@ S <- 32680 ## Modified to add the same number of rows in the LPI
 #load RDS with results
 nf <-length(list.files('lpi_temp/constrain/napermutations/results/'))
 
-resultsPermuna <- lapply(1:length(nf), function(i) {
-  readRDS(sprintf("lpi_temp/constrain/napermutations/results/permutation_result_%03d.rds", i))
+#Merge all of the iteractions
+resultsPermuna <- lapply(1:nf, function(i) {
+  filepath <- sprintf("lpi_temp/constrain/napermutations/results/permutation_result_%03d.rds", i)
+  
+  if (file.exists(filepath)) {
+    readRDS(filepath)
+  } else {
+    NULL  # or NA, or any placeholder for missing files
+  }
 })
 
 for (i in seq_along(resultsPermuna)) {
@@ -57,8 +64,15 @@ p4
 
 nf2 <-length(list.files('lpi_temp/constrain/Zeropermutations/results/'))
 
-resultsPermu01 <- lapply(1:length(nf2), function(i) {
-  readRDS(sprintf("lpi_temp/constrain/Zeropermutations/results/permutation_result_%03d.rds", i))
+#Merge all of the iteractions
+resultsPermu01 <- lapply(1:nf2, function(i) {
+  filepath <- sprintf("lpi_temp/constrain/Zeropermutations/results/permutation_result_%03d.rds", i)
+  
+  if (file.exists(filepath)) {
+    readRDS(filepath)
+  } else {
+    NULL  # or NA, or any placeholder for missing files
+  }
 })
 
 for (i in seq_along(resultsPermu01)) {

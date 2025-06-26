@@ -1,5 +1,32 @@
 ##Functions
+# Function to simulate population growth
+pop_growth <- function(N0 = NULL, r = NULL, K = NULL, rho = 1, gen, stochastic_r = FALSE, stochastic_K = FALSE, plotting = FALSE) {
+  
+  # Set default values for parameters
+  if (is.null(r)) r <- 0.5
+  if (is.null(K)) K <- 500
+  if (is.null(N0)) N0 <- 1
+  
+  # Initialize population size vector
+  pop_size <- numeric(gen + 1)
+  pop_size[1] <- N0
+  
+  # Run simulation over generations
+  for (i in 1:gen) {
+    r_curr <- ifelse(stochastic_r, rnorm(1, r, 0.1), r)
+    K_curr <- ifelse(stochastic_K, rnorm(1, K, 50), K)
+    pop_size[i + 1] <- as.integer(pop_size[i] * exp(r_curr * (1 - pop_size[i] / K_curr)))
+  }
 
+  # Plot results if requested
+  if (plotting) {
+    plot(0:gen, pop_size, type = 'l', col = 'blue', ylim = c(0, max(pop_size)),
+         xlab = 'Generation', ylab = 'Population Size', main = 'Population Growth Simulation')
+    legend('bottomleft', legend = c('Population'), inset = c(0.05, 0.05),
+           col = c('blue'), lty = 1)
+  }
+  return(pop_size)
+}
 
 #Adjust the format as numeric
 clean_data <- function(data) {

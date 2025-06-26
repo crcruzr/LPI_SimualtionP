@@ -1,43 +1,13 @@
-
 library(rlpi)
 library(ggplot2)
 library(missMethods)
 library(tidyverse)
 library(RColorBrewer)
 
-setwd('/Users/ccruzr/Library/Mobile Documents/com~apple~CloudDocs/Cristian/Documents/Estudios/Postgrado/PhD/Projects/LPI_SimualtionP')
 route <- '03OutData/'
 
-# Function to simulate population growth
-pop_growth <- function(N0 = NULL, r = NULL, K = NULL, rho = 1, gen, stochastic_r = FALSE, stochastic_K = FALSE, plotting = FALSE) {
-  
-  # Set default values for parameters
-  if (is.null(r)) r <- 0.5
-  if (is.null(K)) K <- 500
-  if (is.null(N0)) N0 <- 1
-  
-  # Initialize population size vector
-  pop_size <- numeric(gen + 1)
-  pop_size[1] <- N0
-  
-  # Run simulation over generations
-  for (i in 1:gen) {
-    r_curr <- ifelse(stochastic_r, rnorm(1, r, 0.1), r)
-    K_curr <- ifelse(stochastic_K, rnorm(1, K, 50), K)
-    pop_size[i + 1] <- as.integer(pop_size[i] * exp(r_curr * (1 - pop_size[i] / K_curr)))
-  }
-
-  # Plot results if requested
-  if (plotting) {
-    plot(0:gen, pop_size, type = 'l', col = 'blue', ylim = c(0, max(pop_size)),
-         xlab = 'Generation', ylab = 'Population Size', main = 'Population Growth Simulation')
-    legend('bottomleft', legend = c('Population'), inset = c(0.05, 0.05),
-           col = c('blue'), lty = 1)
-  }
-  return(pop_size)
-}
-
 set.seed(42)  # For reproducibility
+source('01Scripts/Functions.r')
 
 # Example simulation
 sim_result <- pop_growth(N0 = 10, r = 0.1, K = 300, gen = 500, stochastic_r = TRUE, stochastic_K = TRUE, plotting = FALSE)
@@ -83,108 +53,106 @@ dir.create(paste0(route, 'SimDat_real_Shape/'))
 save(species_data_clean, file = paste0('00RawData/simulations.RData'))
 
 # Load and plot subset data
-load(file = paste0(getwd(), '/',  route, '03OutData/simulations.RData'))
-plot(as.numeric(species_data_subset[9,]))
+load(file = paste0('00RawData/simulations.RData'))
+plot(as.numeric(species_data_clean[9,]))
 
 # Simulate data matrix for LPI structure
-num_species_final <- 32680
-num_years_sub = 70
 
-species_data_subset <- scale(species_data_clean[, c(300:370)])
-species_data_final <- species_data_subset[1:num_species_final,]
-species_data_final[, (num_years_sub) + 1] <- paste0('Species', 1:num_species_final)
-colnames(species_data_final) <- c(paste0('X', (1949 + 1:num_years_sub)), 'Binomial')
-species_data_final$ID <- 1:nrow(species_data_final)
+years <- 1950:2020 ## Modified to add the same number of years in the LPI
+S <- 32680 ## Modified to add the same number of rows in the LPI
 
-## points distribution
-density_records <- as.data.frame(bind_rows(
-  (species_data_final)) %>% 
-  mutate(ID = paste0("spp", 1:n())) %>% 
-  pivot_longer(cols = -ID, names_to = "Year", values_to = "Value"),
-)
-
-ggsave(
- ggplot(species_data_final, aes(Year, Value)) +
-    geom_hex(bins = 50, color = "grey") +
-    theme_minimal() +
-    scale_fill_distiller(palette = "YlOrRd", direction = 1) +
-    labs(x = "Year", y = "Count"),
- filename = "04Plots/_Density_Stable_popualtion_Sim_data_Full.png", 
- width = 180, height = 120, unit = "mm", dpi = 300
-)
+species_data_subset <- as.data.frame(species_data_clean[sample(nrow(S), nrow(length(years))), ])
+species_data_final<- bino_id(species_data_subset, years, S)
 
 # Compute LPI using simulated data
 lpi_result <- LPIMain(
-  create_infile(species_data_final, index_vector = TRUE, name = 'lpi_temp/Complete_DataSet', 
+  create_infile(species_data_final, index_vector = TRUE, name = 'lpi_temp/complete/simulated/Complete_DataSet', 
                 start_col_name = "X1950", end_col_name = "X2019", CUT_OFF_YEAR = 1950),
   title = 'LPI Results Simulated Data - Full Dataset', REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
-
 ggplot_lpi(lpi_result)
 
+colr <- c("#9467bd", "#c5b0d5")  # Purple + lighter purple
+lpi_result$years <- years
+f1S <- plot_lpi(lpi_result, colr = colr, label_name = "Simulation - Full Dataset")
+
 # Read and process real LPI data
+###################################
 lpi_data <- read.csv('00RawData/LPD2022_public.csv')
-lpi_data_filtered <- lpi_data %>% select(34:104)
 
-# Remove double quotes and convert non-"NULL" values to numeric
-lpi_data_filtered[, 1:ncol(lpi_data_filtered)] <- lapply(lpi_data_filtered[, 1:ncol(lpi_data_filtered)], function(x) {
-  ifelse(x == "NULL", x, gsub('^"|"$', '', x))
-})
-lpi_data_filtered[, 1:ncol(lpi_data_filtered)] <- lapply(lpi_data_filtered[, 1:ncol(lpi_data_filtered)], function(x) {
-  ifelse(x == "NULL", NA, as.numeric(x))
-})
-
-# Resample simulated data to match real data dimensions
-species_data_final_resampled <- species_data_subset[sample(nrow(species_data_subset), nrow(lpi_data_filtered)), ]
-
-lpi_data_filtered_resampled <- lpi_data_filtered
-
-# Add simulated data to real data structure
-mask <- is.na(lpi_data_filtered_resampled) | lpi_data_filtered_resampled == 0
-lpi_data_filtered_resampled[!mask] <- species_data_final_resampled[!mask]
-
-
-lpi_data_filtered_resampled[, (num_years_sub) + 1] <- paste0('Species', 1:num_species_final)
-colnames(lpi_data_filtered_resampled) <- c(paste0('X', (1949 + 1:num_years_sub)), 'Binomial')
-lpi_data_filtered_resampled$ID <- 1:nrow(lpi_data_filtered_resampled)
-
-
-# Compute LPI with the combined dataset
-lpi_combined_result <- LPIMain(
-  create_infile(lpi_data_filtered_resampled, index_vector = TRUE, name = 'lpi_temp/Complete_DataSet',
+lpi_resultR <- LPIMain(
+  create_infile(lpi_data, index_vector = TRUE, name = 'lpi_temp/complete/real/Complete_dataSet', 
                 start_col_name = "X1950", end_col_name = "X2019", CUT_OFF_YEAR = 1950),
-  title = 'LPI Results Simulated Data - Real Dataset', REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
+  title = 'LPI Results Real Data', REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
 
- ggsave(
- ggplot_lpi(lpi_combined_result),
- filename = "04Plots/_Density_Stable_popualtion_Sim_data_Real_Struct.png", 
- width = 180, height = 120, unit = "mm", dpi = 300
- )
+lpi_resultR$years <- years
+f1R <- plot_lpi(lpi_resultR, colr = colr, label_name = "Real Dataset")
+f1R
+### Variation in the simulation
+################################
+
+lpi_data_filtered <- lpi_data %>% select(34:104)
+# Remove double quotes and convert non-"NULL" values to numeric
+lpi_data_filtered<- clean_data(lpi_data_filtered)
+
+# Resample simulated data to match real data dimensions
+load(file = paste0('00RawData/simulations.RData'))
+species_data_final <- species_data_clean[sample(nrow(species_data_clean), nrow(lpi_data_filtered)), sample(ncol(species_data_clean), ncol(lpi_data_filtered))]
+
+# Add simulated data to real data structure
+mask <- is.na(lpi_data_filtered) | lpi_data_filtered == 0
+lpi_data_filtered[!mask] <- species_data_final[!mask]
+
+lpi_data_filtered <- bino_id(lpi_data_filtered, years, S)
+
+# Compute LPI with the combined dataset
+lpi_simul_real_temp <- LPIMain(
+  create_infile(lpi_data_filtered, index_vector = TRUE, name = 'lpi_temp/complete/simulated/real_template',
+                start_col_name = "X1950", end_col_name = "X2019", CUT_OFF_YEAR = 1950),
+  title = 'LPI Results Simulated Data - real Template', REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
+)
+lpi_simul_real_temp$years <- years
+f1SR <- plot_lpi(lpi_simul_real_temp, colr = colr, label_name = "Simulation - Real Template")
+f1SR
 
 # Apply window and trends to simulated data
-species_data_window <- species_data_clean[, c(250:320)]
+species_data_window <- species_data_clean[, c(400:470)]
 species_data_window <- species_data_window[sample(nrow(species_data_window), nrow(lpi_data_filtered)), ]
-species_data_window_resampled <- lpi_data_filtered
+species_data_window_resampled <- lpi_data_filtered[,-c(72,73)]
 species_data_window_resampled[!mask] <- species_data_window[!mask]
 
 # Create data matrix for windowed LPI
-species_data_window_resampled[, ncol(species_data_window_resampled) + 1] <- paste0('Species', 1:num_species_final)
-colnames(species_data_window_resampled) <- c(paste0('X', (1949 + 1:(num_years_sub + 1))), 'Binomial')
-species_data_window_resampled$ID <- 1:nrow(species_data_window_resampled)
+species_data_window_resampled <- bino_id(species_data_window_resampled, years, S)
 
 # Compute LPI with windowed data
 lpi_window_result <- LPIMain(
-  create_infile(species_data_window_resampled, index_vector = TRUE, name = 'lpi_temp/Complete_DataSet',
+  create_infile(species_data_window_resampled, index_vector = TRUE, name = 'lpi_temp/complete/simulated/real_templateII',
                 start_col_name = "X1950", end_col_name = "X2019", CUT_OFF_YEAR = 1950),
-  title = 'LPI Results Simulated Data - Full Dataset Winow 2', REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
+  title = 'LPI Results Simulated Data - real Template 2', REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
 
- ggsave(
- ggplot_lpi(lpi_window_result),
- filename = "04Plots/Windown_moved_Density_Stable_popualtion_Sim_data_Real_Struct.png", 
- width = 180, height = 120, unit = "mm", dpi = 300
- )
+lpi_window_result$years <- years
+f1SR2 <- plot_lpi(lpi_window_result, colr = colr, label_name = "Simulation - Real Template II")
+f1SR2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+####### Code to evaluatae
 
 # Trend simulation and comparison
 years <- 1950:2019
@@ -209,10 +177,10 @@ identical(trend_matrices[[1]], trend_matrices[[3]])
 identical(trend_matrices[[2]], trend_matrices[[3]])
 
 # Update by removing the 'ID' and  binomial column 
-lpi_data_filtered_resampled <- lpi_data_filtered_resampled[, !names(lpi_data_filtered_resampled) %in% c('Binomial', 'ID')]
+lpi_data_filtered <- lpi_data_filtered[, !names(lpi_data_filtered) %in% c('Binomial', 'ID')]
 
 # Create final datasets with trends
-lpi_trend_matrices <- rep(list(lpi_data_filtered_resampled),3)
+lpi_trend_matrices <- rep(list(lpi_data_filtered),3)
 
 for (i in 1:3) {
   lpi_trend_matrices[[i]][!mask] <- trend_matrices[[i]][!mask]
