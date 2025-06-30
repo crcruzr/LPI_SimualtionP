@@ -28,13 +28,13 @@ for (i in seq_along(resultsPermuna)) {
 colr <- c("#1f77b4", "#aec7e8")  # Blue + lighter blue
 
 p6 <- ggplot(
-  purrr::map_df(seq_along(resultsPermuna), ~ mutate(resultsPermuna[[.x]], sim = .x, label = "Simulation with NA of the Real data")),
+  purrr::map_df(seq_along(resultsPermuna), ~ mutate(resultsPermuna[[.x]], sim = .x, label = "Simulation with \n NA of the Real data")),
   aes(x = years, y = LPI_final, group = sim)
 ) +
   geom_ribbon(aes(ymin = CI_low, ymax = CI_high, fill = label), alpha = 0.2, color = NA) +
   geom_line(aes(color = label), size = 1) +
-  scale_fill_manual(name = NULL, values = setNames(colr[2], "Simulation with NA of the Real data")) +
-  scale_color_manual(name = NULL, values = setNames(colr[1], "Simulation with NA of the Real data")) +
+  scale_fill_manual(name = NULL, values = setNames(colr[2], "Simulation with \n NA of the Real data")) +
+  scale_color_manual(name = NULL, values = setNames(colr[1], "Simulation with \n NA of the Real data")) +
   geom_hline(yintercept = 1, linetype = "solid", size = 1, color = "#666666") +
   coord_cartesian(ylim = c(0.0, 2)) +
   scale_x_continuous(breaks = seq(1950, 2020, by = 10), expand = c(0.03, 0.05)) +
@@ -105,16 +105,12 @@ p7 <- ggplot(
     axis.ticks.x = element_line(size = 0.8, color = "black"),
     axis.ticks.y = element_line(size = 0.8, color = "black"),
     legend.text = element_text(size = 25),
-    legend.position = c(0.75, 0.86),
+    legend.position = c(0.75, 0.8),
     panel.grid.major.y = element_line(size = 0.4, color = "gray80"),
     panel.grid.major.x = element_line(size = 0.4, color = "gray90")
   )
 
 p7
 
-ggsave(filename=paste0( "04Plots/Fig5_1.jpeg"), p5, dpi = 300) 
+ggsave(filename=paste0( "04Plots/Fig6.jpeg"), p6, dpi = 300) 
 ggsave(filename=paste0(  "04Plots/Fig7.jpeg"), p7, dpi = 300) 
-
-
-
-
