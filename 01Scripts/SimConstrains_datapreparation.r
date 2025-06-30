@@ -1,7 +1,5 @@
 library(tidyverse)
 library(rlpi)
-library(future)
-library(future.apply)
 library(data.table)
 
 route <- '03OutData/'
@@ -58,7 +56,7 @@ species_data_final <- species_data_clean[sample(nrow(species_data_clean), nrow(l
 lpi_data_filteredNA[!maskNA] <- species_data_final[!maskNA]
 identical(is.na(lpi_data_filtered), is.na(lpi_data_filteredNA))
 
-lpi_data_filteredNAPer[[sample(S, 1)]] <- permutationLPI(lpi_data_filteredNA, nperm = 300, shuffle_zeros = FALSE, shuffle_NA = TRUE , years, S)
+lpi_data_filteredNAPer <- permutationLPI(lpi_data_filteredNA, nperm = 300, shuffle_zeros = FALSE, shuffle_NA = TRUE , years, S)
 
 #### Validation of matrices NA approach
 ######################
@@ -97,13 +95,10 @@ lpi_data_filtered0[!mask0] <- species_data_final[!mask0]
 identical((ifelse(is.na(lpi_data_filtered0), FALSE, lpi_data_filtered0 == 0)),
 (ifelse(is.na(lpi_data_filtered), FALSE, lpi_data_filtered == 0)))
 
-
-
 lpi_data_filtered0Per <- permutationLPI(lpi_data_filtered0, nperm = 300, shuffle_zeros = TRUE, shuffle_NA = FALSE, years = years, S = S)
 
 #### Validation of matirces Zero approach
 ######################
-
 ## Same number of Zeros in general
 identical((sum(lpi_data_filtered == 0, na.rm = TRUE)), 
 sum((lpi_data_filtered0Per[[  sample(length(lpi_data_filtered0Per),1) ]]) == 0, na.rm = TRUE))
