@@ -1,6 +1,9 @@
 
 library(rlpi)
 library(tidyverse)
+library(data.table)
+library(purrr)
+library(ggplot2)
 
 set.seed(42)  # For reproducibility
 source('01Scripts/Functions.r')
@@ -164,6 +167,11 @@ lpi_simul_90$years <- years
 f10 <- plot_lpi(lpi_simul_90, colr = colr, label_name = "Simulation - 90% error")
 f10
 
+
+#### END
+####
+
+
 #################################################
 #### Using the Falko T. Buschke et al trends ####
 #################################################
@@ -179,7 +187,9 @@ trend_list <- list(vect_conv, vect_linD, vect_conc)
 trend_matrices <- list()
 
 species_data_final2 <- species_data_final[, !names(species_data_final) %in%  c('Binomial', 'ID')]
+species_data_final2<- scale(species_data_final2)
 
+trend_matrices <- list()
 for (i in 1:3) {
   trend_matrices[[i]] <- sweep((species_data_final2), MARGIN = 2, trend_list[[i]], '+')
 }
@@ -189,26 +199,13 @@ identical(trend_matrices[[1]], trend_matrices[[2]])
 identical(trend_matrices[[1]], trend_matrices[[3]])
 identical(trend_matrices[[2]], trend_matrices[[3]])
 
-lpi_data <- read.csv('00RawData/LPD2022_public.csv')
-lpi_data_filtered <- lpi_data |> select(34:104)
-# Update by removing the 'ID' and  binomial column 
-lpi_data_filtered <- lpi_data_filtered[, !names(lpi_data_filtered) %in% c('Binomial', 'ID')]
-
-# Create final datasets with trends
-lpi_trend_matrices <- rep(list(lpi_data_filtered),3)
-mask <- is.na(lpi_data_filtered) | lpi_data_filtered == 0
-
-for (i in 1:3) {
-  lpi_trend_matrices[[i]][!mask] <- trend_matrices[[i]][!mask]
-}
-
+lpi_trend_matrices<-list()
 # Add species identifiers and finalize datasets
 for (i in 1:3) {
-  lpi_trend_matrices[[i]] <- bino_id(lpi_trend_matrices[[i]], years, S)
+  lpi_trend_matrices[[i]] <- bino_id(as.data.frame(trend_matrices[[i]]), years, S)
 }
-plot(as.numeric((lpi_trend_matrices[[1]][60,c(1:72)])))
-points(as.numeric((lpi_trend_matrices[[2]][60,c(1:72)])), add = T, col = 'red')
-points(as.numeric((lpi_trend_matrices[[3]][60,c(1:72)])), add = T, col = 'blue')
+
+head(lpi_trend_matrices[[2]],1)
 
 # Simulate trends for different datasets
 trend_names <- c('Convex Decrease', 'Linear Decrease', 'Concave Decrease')
@@ -222,67 +219,4 @@ for (i in 1:length(lpi_trend_matrices)) {
     title = trend_names[i], REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
   )
 } 
-
-# Visualize high variation trends
- ggsave(
-high_variation_plot <- ggplot_multi_lpi(high_results, names = trend_names, 
-title = 'Simulation Trends'),
- filename = "03_figures/Simulation_different_Trends.png", 
- width = 180, height = 120, unit = "mm", dpi = 300
- )
-
-# Prepare long-format data for visualization
-df_long_comb_HV <- bind_rows(
-  lpi_trend_matrices[[1]] |> mutate(ID = paste0("spp", 1:n())) |>
-    pivot_longer(cols = -ID, names_to = "Year", values_to = "Value") |> mutate(Trend = "convex"),
-  lpi_trend_matrices[[2]] |> mutate(ID = paste0("spp", 1:n())) |>
-    pivot_longer(cols = -ID, names_to = "Year", values_to = "Value") |> mutate(Trend = "linear"),
-  lpi_trend_matrices[[3]] |> mutate(ID = paste0("spp", 1:n())) |>
-    pivot_longer(cols = -ID, names_to = "Year", values_to = "Value") |> mutate(Trend = "concave")
-)
-
-
-#Merge trend in unique dataset
-i<-3
-lpi_trend_matrices[[i]][!mask] <- trend_matrices[[i]][!mask]
-trend_matrices[[i]][!mask]
-
-
-a<- lpi_trend_matrices[[1]]
-b<- lpi_trend_matrices[[2]]
-c<- lpi_trend_matrices[[3]]
-
-a$trend <- trend_names[1]
-b$trend <- trend_names[2]
-c$trend <- trend_names[3]
-
-
-# Define a function to sample 33% of rows from a given data frame
-sample_data <- function(df) {
-  size <- floor(nrow(df) * 0.33)
-  df[sample(1:nrow(df), size), ]
-}
-# Sample 33% of rows from 'a' and 'c' (two times)
-join_trends <- rbind(sample_data(a), sample_data(c), sample_data(c))
-
-join_trends$Binomial <- 1:nrow(join_trends) #re writting binomial species to advoid duplicated spp
-join_trends$ID <- 1:nrow(join_trends)
-
-Join_lpt_trends <- LPIMain(
-    create_infile(join_trends, index_vector = TRUE, 
-                  name = paste0('lpi_temp/join_trends'),
-                  start_col_name = "X1950", end_col_name = "X2019", CUT_OFF_YEAR = 1950),
-    title = 'join_trends_LPI', REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
-  )
- 
- ggsave(
- ggplot_lpi(Join_lpt_trends),
- filename = "04Plots/Join_thrends_Con_line_convex.png", 
- width = 180, height = 120, unit = "mm", dpi = 300
- )
-
-
-
-
-
 

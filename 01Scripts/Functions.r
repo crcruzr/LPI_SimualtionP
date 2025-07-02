@@ -129,6 +129,57 @@ plot_lpi <- function(data, colr, label_name = "LPIX") {
     )
 }
 
+### plot for data obtained medianted a list
+plot_lpi_table <- function(data, colors, interaction = FALSE, interaction_label = "Simulation with zeros \n of the Real data", label_name = NULL) {
+  # Check required columns
+  required_cols <- c("years", "LPI_final", "CI_low", "CI_high", "sim", "label")
+  missing_cols <- setdiff(required_cols, names(data))
+  if(length(missing_cols) > 0) {
+    stop("The data is missing these required columns: ", paste(missing_cols, collapse = ", "))
+  }
+  
+  # Override label if label_name is provided
+  if (!is.null(label_name)) {
+    data$label <- label_name
+  } else if (interaction) {
+    data$label <- interaction_label
+  }
+  
+  # Prepare colors based on unique labels
+  unique_labels <- unique(data$label)
+  fill_colors <- setNames(rep(colors, length.out = length(unique_labels)), unique_labels)
+  line_colors <- fill_colors
+  
+  ggplot(data, aes(x = years, y = LPI_final, group = sim)) +
+    geom_ribbon(aes(ymin = CI_low, ymax = CI_high, fill = label), alpha = 0.2, color = NA) +
+    geom_line(aes(color = label), size = 1) +
+    scale_fill_manual(name = NULL, values = fill_colors) +
+    scale_color_manual(name = NULL, values = line_colors) +
+    geom_hline(yintercept = 1, linetype = "solid", size = 1, color = "#666666") +
+    coord_cartesian(ylim = c(0.0, 2)) +
+    scale_x_continuous(breaks = seq(1950, 2020, by = 10), expand = c(0.03, 0.05)) +
+    scale_y_continuous(limits = c(0, 2), expand = c(0.05, 0.002)) +
+    labs(x = "Year", y = "Index", title = "") +
+    geom_vline(xintercept = 1950, color = "gray80", size = 0.5) +
+    geom_hline(yintercept = 0, color = "gray80", size = 0.5) +
+    guides(color = guide_legend(override.aes = list(size = 2))) +
+    theme(
+      panel.background = element_rect(fill = "white"),
+      panel.border = element_rect(color = "black", fill = NA, size = 0.8),
+      axis.title = element_text(size = 25),
+      axis.text.x = element_text(size = 20, hjust = 0.5, margin = margin(t = 5)),
+      axis.text.y = element_text(size = 20),
+      axis.ticks.x = element_line(size = 0.8, color = "black"),
+      axis.ticks.y = element_line(size = 0.8, color = "black"),
+      legend.text = element_text(size = 25),
+      legend.position = c(0.75, 0.8),
+      panel.grid.major.y = element_line(size = 0.4, color = "gray80"),
+      panel.grid.major.x = element_line(size = 0.4, color = "gray90")
+    )
+}
+
+
+
 #function toparalelize theprocesess
 
 

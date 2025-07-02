@@ -5,6 +5,7 @@
 lpi_temp/*
 Rplots.pdf
 01Scripts/functionsLPIT.RData
+*.gif
 
 #Server
 jobs/*
