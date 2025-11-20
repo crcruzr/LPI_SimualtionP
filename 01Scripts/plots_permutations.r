@@ -6,6 +6,17 @@ library('purrr')
 years <- 1950:2020 ## Modified to add the same number of years in the LPI
 S <- 32680 ## Modified to add the same number of rows in the LPI
 
+## Real LPI
+
+real <- fread('lpi_temp/complete/real/Complete_dataSet_infile_Results.txt')
+
+real$years <- years
+colr <- c("#1f77b4", "#aec7e8")  # Blue + lighter blue
+
+pr <- plot_lpi(real, colr, label_name = 'LPI')
+pr
+ggsave(filename=paste0(  "04Plots/FigR0.jpeg"), pr, dpi = 300)
+
 ## NA
 #load RDS with results
 nf <-length(list.files('lpi_temp/constrain/napermutations/results/'))
@@ -26,7 +37,6 @@ for (i in seq_along(resultsPermuna)) {
   resultsPermuna[[i]][, years := years]
 }
 
-colr <- c("#1f77b4", "#aec7e8")  # Blue + lighter blue
 
 ## option 1
 plotI <- map_df(seq_along(resultsPermuna), ~ mutate(resultsPermuna[[.x]], sim = .x, label = "Simulation with \n NA of the Real data"))
