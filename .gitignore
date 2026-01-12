@@ -6,6 +6,8 @@ lpi_temp/*
 Rplots.pdf
 01Scripts/functionsLPIT.RData
 *.gif
+01Scripts/
+04Plots/*
 
 #Server
 jobs/*
@@ -14,7 +16,6 @@ narval.sh
 .Rproj.user
 
 # Don't ignore these
-# !00RawData/ColDP.csv Example
 !01Scripts/DPMC_Analysis.R
 !02Manuscript/Datapaper endemic, threatened and mammals subject to use.pdf
 !.gitkeep
