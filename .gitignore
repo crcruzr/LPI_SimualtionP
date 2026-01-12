@@ -1,13 +1,13 @@
 # Local
 00RawData/*
+01Scripts/*
 02Documents/*
 03OutData/*
 lpi_temp/*
 Rplots.pdf
-01Scripts/functionsLPIT.RData
-*.gif
-01Scripts/
-04Plots/*
+05Plots/*
+03processedData/*
+04FinalData/*
 
 #Server
 jobs/*
@@ -16,10 +16,8 @@ narval.sh
 .Rproj.user
 
 # Don't ignore these
-!01Scripts/DPMC_Analysis.R
-!02Manuscript/Datapaper endemic, threatened and mammals subject to use.pdf
+!01Scripts/
+!01Scripts/01_SimulatedPop_LPI.r
+!01Scripts/Functions.r
+
 !.gitkeep
-!lpi_temp/constrain/napermutations/results*
-trend_plotPPpt.png
-trend_plotPPpt2.png
-plotPpT.R
