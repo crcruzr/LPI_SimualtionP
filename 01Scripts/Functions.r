@@ -150,8 +150,8 @@ plot_lpi_table <- function(data, colors, interaction = FALSE, interaction_label 
   fill_colors <- setNames(rep(colors, length.out = length(unique_labels)), unique_labels)
   line_colors <- fill_colors
   
-  ggplot(data, aes(x = years, y = LPI_final, group = sim)) +
-    geom_ribbon(aes(ymin = CI_low, ymax = CI_high, fill = label), alpha = 0.2, color = NA) +
+  ggplot(data, aes(x = years, y = LPI_final)) + # i've removed group and iv'e added in the next line
+    geom_ribbon(aes(ymin = CI_low, ymax = CI_high, fill = label, group = label), alpha = 0.2, color = NA) +
     geom_line(aes(color = label), size = 1) +
     scale_fill_manual(name = NULL, values = fill_colors) +
     scale_color_manual(name = NULL, values = line_colors) +
