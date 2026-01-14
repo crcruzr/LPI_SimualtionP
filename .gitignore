@@ -22,4 +22,5 @@ narval.sh
 !01Scripts/02_trends_LPI.r
 !01Scripts/03_SimConstrains_datapreparation.r
 !01Scripts/04_SimConstrains.r
+!04FinalData/
 !.gitkeep
