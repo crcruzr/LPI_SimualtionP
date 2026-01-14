@@ -20,4 +20,6 @@ narval.sh
 !01Scripts/01_SimulatedPop_LPI.r
 !01Scripts/Functions.r
 !01Scripts/02_trends_LPI.r
+!01Scripts/03_SimConstrains_datapreparation.r
+!01Scripts/04_SimConstrains.r
 !.gitkeep

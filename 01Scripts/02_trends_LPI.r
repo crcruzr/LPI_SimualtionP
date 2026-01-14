@@ -23,7 +23,7 @@ trend_list <- list(vect_conv, vect_linD, vect_conc)
 trend_matrices <- list()
 
 # Load and plot subset data
-load(file = paste0('03processedData/Species_simulations.RData'))
+load(file = '03processedData/Species_simulations.RData')
 
 # Simulate data matrix for LPI structure
 S <- 32680 ## Modified to add the same number of rows in the LPI
@@ -36,7 +36,6 @@ species_data_subset <- species_data_clean[
 
 for (i in 1:3) {
   trend_matrices[[i]] <- sweep(species_data_subset, 2, trend_list[[i]] / 100, "*")
-
 } 
 
 # Verify similarity between trend matrices - It should be different 
@@ -89,7 +88,6 @@ to_plot<- out <- bind_rows(
   })
 )
 
-
 dir.create("04FinalData/complete/simulated/Conv_conc_lin/",
            recursive = TRUE,
            showWarnings = FALSE)
@@ -102,7 +100,6 @@ write.csv()
 
 #### Removing data 
 ########################
-
 
 dir.create("03processedData/complete/simulated/Conv_conc_lin_Remdt/",
            recursive = TRUE,
@@ -139,7 +136,6 @@ plot(as.numeric(as.matrix(remove_data_vect[[2]][[1]][1:100, ]))) ##Linear with l
 plot(as.numeric(as.matrix(remove_data_vect[[2]][[5]][1:100, ]))) ##Linear with less 80
 
 plot(as.numeric(as.matrix(remove_data_vect[[3]][[5]][1:100, ]))) ##Linear with less 80
-
 
 # Remove "Binomial" column from data frames in the third level
 names = c('20%', '40%', '60%', '80%', '95%')
@@ -195,10 +191,7 @@ RemovingData_results[[i]] <- min
 };end_time <- Sys.time()
 end_time - start_time #1.030387 mins
 
-
 # Create a list to store the subsets
-
-
 Concave_miss_data <- c(RemovingData_results[[1]][1:5])
 linear_miss_data <- c(RemovingData_results[[2]][1:5])
 convex_miss_data <- c(RemovingData_results[[3]][1:5])
@@ -236,6 +229,6 @@ plot_data4 <-map_df(seq_along(convex_miss_data), ~
 p13 <- plot_lpi_table(plot_data4, colors = colors)
 #ggsave(filename=paste0(  "04Plots/Fig1f.jpeg"), p13, dpi = 300)
 
-
+############
 ### END ####
-###########
+############
