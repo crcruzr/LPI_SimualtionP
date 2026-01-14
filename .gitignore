@@ -2,12 +2,10 @@
 00RawData/*
 01Scripts/*
 02Documents/*
-03OutData/*
+03processedData/*
+05Plots/*
 lpi_temp/*
 Rplots.pdf
-05Plots/*
-03processedData/*
-04FinalData/*
 
 #Server
 jobs/*
@@ -17,10 +15,9 @@ narval.sh
 
 # Don't ignore these
 !01Scripts/
-!01Scripts/01_SimulatedPop_LPI.r
 !01Scripts/Functions.r
+!01Scripts/01_SimulatedPop_LPI.r
 !01Scripts/02_trends_LPI.r
 !01Scripts/03_SimConstrains_datapreparation.r
 !01Scripts/04_SimConstrains.r
-!04FinalData/
 !.gitkeep
