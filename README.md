@@ -1,7 +1,3 @@
-This repository storaged all of the scripts used to the paper
-
-# Assessing the sensibility and robustness of the Living Planet Index through simulated population dynamics: Strengths, stability, and challenges.
-
 # Project Overview
 
 This repository contains the scripts, data, and outputs required to reproduce the full analytical pipeline used in the paper **Assessing the sensibility and robustness of the Living Planet Index through simulated population dynamics: Strengths, stability, and challenges**, including simulation, trend modeling, constraint application, and computation of the **Living Planet Index (LPI)**.
