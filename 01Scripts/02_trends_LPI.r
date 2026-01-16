@@ -3,12 +3,13 @@ library(ggplot2)
 library(missMethods)
 library(tidyverse)
 library(RColorBrewer)
+library(data.table)
 
 route <- '03processedData/'
 source('01Scripts/Functions.r')
 
-# Function to simulate population growth
-set.seed(42)  # For reproducibility
+# For reproducibility
+set.seed(42)
 
 # Trend simulation and comparison
 years <- 1950:2019
@@ -19,7 +20,6 @@ vect_conc <- round(((60 * (1 - x^5)) + 40), 2); plot(vect_conc)
 
 # Compare different trend matrices
 trend_list <- list(vect_conv, vect_linD, vect_conc)
-
 trend_matrices <- list()
 
 # Load and plot subset data
@@ -43,7 +43,6 @@ identical(trend_matrices[[1]], trend_matrices[[2]])
 identical(trend_matrices[[1]], trend_matrices[[3]])
 identical(trend_matrices[[2]], trend_matrices[[3]])
 
-
 plot(as.numeric(as.matrix(trend_matrices[[1]][1:10, ])))
 plot(as.numeric(as.matrix(trend_matrices[[2]][1:10, ])))
 plot(as.numeric(as.matrix(trend_matrices[[3]][1:10, ])))
@@ -64,7 +63,7 @@ dir.create("03processedData/complete/simulated/Conv_conc_lin/",
            recursive = TRUE,
            showWarnings = FALSE)
 
-
+# Loop to generate LPI for each trend matrix
 for (i in 1:length(lpi_trend_matrices)) {
   high_results[[i]] <- LPIMain(
     create_infile(lpi_trend_matrices[[i]], index_vector = TRUE, 
@@ -93,14 +92,13 @@ dir.create("04FinalData/complete/simulated/Conv_conc_lin/",
            showWarnings = FALSE)
 
 write.csv(to_plot, '04FinalData/complete/simulated/Conv_conc_lin/Conv_conc_lin.csv')
+to_plot <- read.csv('04FinalData/complete/simulated/Conv_conc_lin/Conv_conc_lin.csv')
 
 f1c <- plot_lpi_table(to_plot, colors = colors);f1c
 
 write.csv()
 
-#### Removing data 
-########################
-
+## Removing data 
 dir.create("03processedData/complete/simulated/Conv_conc_lin_Remdt/",
            recursive = TRUE,
            showWarnings = FALSE)
@@ -158,17 +156,17 @@ for (i in 1:3) {
 }
 
 gF <- gF[!is.na(gF$Trend),]
-
 gF$Trend <- factor(gF$Trend, levels = c('20%', '40%', '60%', '80%', '95%'))
 
-#######
+#####################################################################################################################
 ## Loop to generaate the LPI with linear, concave and convex  removing 0, 20%, 40%, 60% y 80% percent of the dataset
-###########
+#########################################################################################################################
 
 RemovingData_results <- list()
 min <- list()
 route<-'03processedData/complete/simulated/Conv_conc_lin_Remdt/'
 
+# loop to generate LPI for each trend matrix with missing data
 start_time <- Sys.time()
 for (i in 1:length(remove_data_vect)) {
 x<- remove_data_vect[[i]]
@@ -207,27 +205,39 @@ for (lst in list(Concave_miss_data, linear_miss_data, convex_miss_data)) {
   }
 }
 
-colors <- c("#558ed5", "#77933d", "#4a452a", "#d87c30", "#5b9aa0")
+dir.create("04FinalData/complete/simulated/Conv_conc_lin_Remdt/",
+           recursive = TRUE,
+           showWarnings = FALSE)
 
-##plot concave
+
+colorsG <- c("#558ed5", "#77933d", "#4a452a", "#d87c30", "#5b9aa0")
+
+## concave
 plot_data2 <-map_df(seq_along(Concave_miss_data), ~ 
-  mutate(Concave_miss_data[[.x]], sim = .x, label = missnm[.x])
+  mutate(Concave_miss_data[[.x]], sim = .x, label = names[.x])
 )
-p11 <- plot_lpi_table(plot_data2, colors = colors)
-#ggsave(filename=paste0(  "04Plots/Fig1d.jpeg"), p11, dpi = 300)
+write.csv(plot_data2, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/Conv_gaps.csv')
+plot_data2 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/Conv_gaps.csv')
+p11 <- plot_lpi_table(plot_data2, colors = colorsG); p11
+ggsave(filename=paste0("05Plots/Fig1f.jpeg"), p11, dpi = 300)
 
 # linear
 plot_data3 <-map_df(seq_along(linear_miss_data), ~ 
-  mutate(linear_miss_data[[.x]], sim = .x, label = missnm[.x])
+  mutate(linear_miss_data[[.x]], sim = .x, label = names[.x])
 )
-p12 <- plot_lpi_table(plot_data3, colors = colors)
-#ggsave(filename=paste0(  "04Plots/Fig1e.jpeg"), p12, dpi = 300)
+write.csv(plot_data3, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/linear_gaps.csv')
+plot_data3 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/linear_gaps.csv')
+p12 <- plot_lpi_table(plot_data3, colors = colorsG);p12
+ggsave(filename=paste0("05Plots/Fig1e.jpeg"), p12, dpi = 300)
 
+#c# onvex
 plot_data4 <-map_df(seq_along(convex_miss_data), ~ 
-  mutate(convex_miss_data[[.x]], sim = .x, label = missnm[.x])
+  mutate(convex_miss_data[[.x]], sim = .x, label = names[.x])
 )
-p13 <- plot_lpi_table(plot_data4, colors = colors)
-#ggsave(filename=paste0(  "04Plots/Fig1f.jpeg"), p13, dpi = 300)
+write.csv(plot_data4, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gaps.csv')
+plot_data4 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gaps.csv')
+p13 <- plot_lpi_table(plot_data4, colors = colorsG); p13
+ggsave(filename=paste0("05Plots/Fig1d.jpeg"), p13, dpi = 300)
 
 ############
 ### END ####

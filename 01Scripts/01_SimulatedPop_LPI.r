@@ -5,7 +5,6 @@ library(tidyverse)
 library(RColorBrewer)
 
 route <- '03processedData/'
-
 set.seed(42)  # For reproducibility
 source('01Scripts/Functions.r')
 
@@ -20,7 +19,6 @@ plot(scale(obs_error))
 num_years <- 500
 num_species <- 100
 species_data <- data.frame(matrix(NA, nrow = num_species, ncol = num_years))
-
 ran_pop_sizes <- NA
 start_time <- Sys.time()
 
@@ -84,16 +82,20 @@ ggplot_lpi(lpi_result)
 
 colr <- c("#9467bd", "#c5b0d5")  # Purple + lighter purple
 lpi_result$years <- years
-f1a <- plot_lpi(lpi_result, colr = colr, label_name = "Simulation - Full Dataset")
+f1a <- plot_lpi(lpi_result, colr = colr, label_name = "Simulation Data")
+ggsave(filename=paste0("05Plots/Fig1a.jpeg"), f1a, dpi = 300) ## plot used in the paper
+
 
 dir.create("04FinalData/complete/simulated/Complete_dataSet",
            recursive = TRUE,
            showWarnings = FALSE)
 
 write.csv(lpi_result, '04FinalData/complete/simulated/Complete_dataSet/Complete_dataSet.csv')
+lpi_result <- read.csv('04FinalData/complete/simulated/Complete_dataSet/Complete_dataSet.csv')
 
 # Read and process real LPI data
 ###################################
+
 lpi_data <- read.csv('00RawData/LPD2022_public.csv')
 
 dir.create("03processedData/complete/real/Complete_dataSet",
@@ -107,17 +109,20 @@ lpi_resultR <- LPIMain(
 )
 
 lpi_resultR$years <- years
-f1b <- plot_lpi(lpi_resultR, colr = colr, label_name = "Real Dataset")
 
+colr2 <- c("#ff7f0e", "#ffbb78")  # Orange + lighter orange
+f1b <- plot_lpi(lpi_resultR, colr = colr2, label_name = "Living Planet \n Database");f1b
+
+ggsave(filename=paste0("05Plots/Fig1b.jpeg"), f1b, dpi = 300) ## plot used in the paper
 
 dir.create("04FinalData/complete/real/Complete_dataSet",
            recursive = TRUE,
            showWarnings = FALSE)
 
 write.csv(lpi_resultR, '04FinalData/complete/real/Complete_dataSet/Complete_dataSet.csv')
+lpi_resultR <- read.csv('04FinalData/complete/real/Complete_dataSet/Complete_dataSet.csv')
 
-## plot 1a y b
-
+###############################
 ### Variation in the simulation
 ################################
 
@@ -133,7 +138,6 @@ species_data_final <- species_data_clean[sample(nrow(species_data_clean), nrow(l
 # Add simulated data to real data structure
 mask <- is.na(lpi_data_filtered) | lpi_data_filtered == 0
 lpi_data_filtered[!mask] <- species_data_final[!mask]
-
 lpi_data_filtered <- bino_id(lpi_data_filtered, years, S)
 
 # Compute LPI with the combined dataset 
@@ -146,11 +150,20 @@ lpi_simul_real_temp <- LPIMain(
                 start_col_name = "X1950", end_col_name = "X2019", CUT_OFF_YEAR = 1950),
   title = 'LPI Results Simulated Data - real Template', REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
+
+dir.create("04FinalData/complete/simulated/real_template",
+           recursive = TRUE,
+           showWarnings = FALSE)
+
 lpi_simul_real_temp$years <- years
-f2a <- plot_lpi(lpi_simul_real_temp, colr = colr, label_name = "Simulation - Real Template")
+
+write.csv(lpi_simul_real_temp, '04FinalData/complete/simulated/real_template/real_dataSet.csv')
+
+f2a <- plot_lpi(lpi_simul_real_temp, colr = colr, show_label = FALSE, label_name = "")
 f2a
+ggsave(filename=paste0("05Plots/Fig2a.jpeg"), f2a, dpi = 300) ## plot used in the paper
+lpi_simul_real_temp <- read.csv('04FinalData/complete/simulated/real_template/real_dataSet.csv')
 
+###########
 ### END ###
-
-####### Adding only Zeros and NA in simulated Data
-### Past to the constrain script
+###########

@@ -1,5 +1,10 @@
-##Functions
-# Function to simulate population growth
+
+## Functions used in the LPI analyses ##
+
+###########################################
+# Function to simulate population growth ##
+############################################
+
 pop_growth <- function(N0 = NULL, r = NULL, K = NULL, rho = 1, gen, stochastic_r = FALSE, stochastic_K = FALSE, plotting = FALSE) {
   
   # Set default values for parameters
@@ -28,7 +33,10 @@ pop_growth <- function(N0 = NULL, r = NULL, K = NULL, rho = 1, gen, stochastic_r
   return(pop_size)
 }
 
-#Adjust the format as numeric
+#############################################
+#Function to adjust the format as numeric ##
+############################################
+
 clean_data <- function(data) {
   data[] <- lapply(data, function(x) {
     # Step 1: Remove double quotes (keeping "NULL" as it is)
@@ -40,7 +48,10 @@ clean_data <- function(data) {
   return(data)
 }
 
-## add mandatory columns to use the LPI 
+#######################################################
+## Function to add mandatory columns to use the LPI ###
+#######################################################
+
 bino_id <- function(data, years, num_species) {
   # Add a 'Binomial' column with 'Species1', 'Species2', ..., 'SpeciesN'
   data[, (length(years) + 1)] <- paste0('Species', 1:num_species)
@@ -53,6 +64,10 @@ bino_id <- function(data, years, num_species) {
   
   return(data)
 }
+
+############################################################################
+## Function to permute data matrix while preserving NA and zero positions ##
+############################################################################
 
 permutationLPI <- function(mat, nperm = 100, shuffle_zeros = TRUE, shuffle_NA = FALSE, years = years, S = S) {
   permuted_matrices <- vector("list", nperm)
@@ -92,17 +107,18 @@ pb <- txtProgressBar(min = 0, max = nperm, style = 3)
    close(pb)
 }
 
+##################################
+## Function to plot LPI results ##
+##################################
 
-##plot
-plot_lpi <- function(data, colr, label_name = "LPIX") {
+plot_lpi <- function(data, colr, label_name = "LPIX", show_label = TRUE) {
   if (!"years" %in% colnames(data)) {
     stop("The data must contain a 'years' column")
   }
-  
   # Add a new column with the label_name for mapping fill and color
   data$label <- label_name
   
-  ggplot(data, aes(x = years)) +
+  p <- ggplot(data, aes(x = years)) +
     geom_ribbon(aes(ymin = CI_low, ymax = CI_high, fill = label), alpha = 0.2) +
     geom_hline(yintercept = 1, linetype = "solid", size = 0.5, color = "#000000") +
     geom_line(aes(y = LPI_final, color = label), size = 1) +
@@ -127,10 +143,25 @@ plot_lpi <- function(data, colr, label_name = "LPIX") {
       panel.grid.major.y = element_line(size = 0.4, color = "gray80"),
       panel.grid.major.x = element_line(size = 0.4, color = "gray90")
     )
+  
+  if (show_label) {
+    p <- p + guides(
+      color = guide_legend(
+        override.aes = list(fill = colr[2], color = colr[1], size = 15, alpha = 0.2)
+      )
+    )
+  } else {
+    p <- p + theme(legend.position = "none")
+  }
+  
+  return(p)
 }
 
-### plot for data obtained medianted a list
-plot_lpi_table <- function(data, colors, interaction = FALSE, interaction_label = "Simulation with zeros \n of the Real data", label_name = NULL) {
+#########################################################
+## Function to plot for data obtained medianted a list ##
+#########################################################
+
+plot_lpi_table <- function(data, colors, interaction = FALSE, interaction_label = "Simulation with", show_label = FALSE, label_name = NULL) {
   # Check required columns
   required_cols <- c("years", "LPI_final", "CI_low", "CI_high", "sim", "label")
   missing_cols <- setdiff(required_cols, names(data))
@@ -150,7 +181,7 @@ plot_lpi_table <- function(data, colors, interaction = FALSE, interaction_label 
   fill_colors <- setNames(rep(colors, length.out = length(unique_labels)), unique_labels)
   line_colors <- fill_colors
   
-  ggplot(data, aes(x = years, y = LPI_final)) + # i've removed group and iv'e added in the next line
+  p <- ggplot(data, aes(x = years, y = LPI_final)) + # i've removed group and iv'e added in the next line
     geom_ribbon(aes(ymin = CI_low, ymax = CI_high, fill = label, group = label), alpha = 0.2, color = NA) +
     geom_line(aes(color = label), size = 1) +
     scale_fill_manual(name = NULL, values = fill_colors) +
@@ -176,12 +207,18 @@ plot_lpi_table <- function(data, colors, interaction = FALSE, interaction_label 
       panel.grid.major.y = element_line(size = 0.4, color = "gray80"),
       panel.grid.major.x = element_line(size = 0.4, color = "gray90")
     )
+  
+  # Show or hide legend
+  if (!show_label) {
+    p <- p + theme(legend.position = "none")
+  }
+  
+  return(p)
 }
 
-
-
-#function toparalelize theprocesess
-
+######################################
+#function toparalelize theprocesess ##
+#######################################
 
 process_permutation <- function(w = 1, base_path = getwd(), 
                                 title_prefix = "LPI Results") {
