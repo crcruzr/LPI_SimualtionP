@@ -17,7 +17,7 @@ plot(scale(obs_error))
 
 # Simulate multiple species
 num_years <- 500
-num_species <- 100
+num_species <- 60000
 species_data <- data.frame(matrix(NA, nrow = num_species, ncol = num_years))
 ran_pop_sizes <- NA
 start_time <- Sys.time()
@@ -96,7 +96,10 @@ lpi_result <- read.csv('04FinalData/complete/simulated/Complete_dataSet/Complete
 # Read and process real LPI data
 ###################################
 
-lpi_data <- read.csv('00RawData/LPD2022_public.csv')
+#To process it you should download the LPD data from the LPI website https://www.livingplanetindex.org/data_portal and save it in the folder 00RawData.
+# The file name should be adjusted if it is different
+
+lpi_data <- read.csv('00RawData/LPD_2024_public.csv') #inclde in this folder the LPD data
 
 dir.create("03processedData/complete/real/Complete_dataSet",
            recursive = TRUE,

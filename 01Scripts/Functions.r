@@ -5,7 +5,13 @@
 # Function to simulate population growth ##
 ############################################
 
-pop_growth <- function(N0 = NULL, r = NULL, K = NULL, rho = 1, gen, stochastic_r = FALSE, stochastic_K = FALSE, plotting = FALSE) {
+# N0 represent the initial population
+# r indicates the intrinsic growth rate
+# K is the carrying capacity
+# gen refers the number of generations 
+# stochastic_r and stochastic_K are logical values to indicate if r and K are stochastic. both varies based in the normal distribution
+
+pop_growth <- function(N0 = NULL, r = NULL, K = NULL, gen, stochastic_r = FALSE, stochastic_K = FALSE, plotting = FALSE) {
   
   # Set default values for parameters
   if (is.null(r)) r <- 0.5
