@@ -243,9 +243,9 @@ write.csv(convex_miss_data, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/
 ggsave(filename=paste0("05Plots/Fig1d.jpeg"), p13, dpi = 300)
 
 
-plot_data2 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/Conv_gaps.csv')
-plot_data3 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/linear_gaps.csv')
-plot_data4 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gaps.csv')
+Concave_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/Conv_gapsMed.csv')
+linear_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/linear_gapsMed.csv')
+convex_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gapsMed.csv')
 
 ############
 ### END ####
