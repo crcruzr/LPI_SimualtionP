@@ -9,26 +9,41 @@
 # r indicates the intrinsic growth rate
 # K is the carrying capacity
 # gen refers the number of generations 
-# stochastic_r and stochastic_K are logical values to indicate if r and K are stochastic. both varies based in the normal distribution
+# stochastic_r and stochastic_K indicate if r and K are stochastic. both varies based in the normal distribution
+# sigma_r Variation in intrinsic growth rate
+# sigma_K Variation in carrying capacity
 
 pop_growth <- function(N0 = NULL, r = NULL, K = NULL, gen, stochastic_r = FALSE, stochastic_K = FALSE, plotting = FALSE) {
   
   # Set default values for parameters
-  if (is.null(r)) r <- 0.5
-  if (is.null(K)) K <- 500
+  if (is.null(r)) r <- runif(1, 0.05, (0.45+0.1)) # Large mammal (T=20 yr)	Mammal	~0.05	Dillingham et al. 2016 (10.1890/14-1990) / Bonnethead shark (Sphyrna tiburo)	Elasmobranch	~0.45	Pardo et al. 2016 (10.1002/ece3.9441) 
+  if (is.null(K)) K <- runif(1, 10, 72000) #Elk (Cervus elaphus)	Large mammal	~<10 per herd equilibrium Koetke LJ, et al., (2020). (10.1038/s41598-020-72843-5) / Chinook salmon ~71,844 per delta (historic 75th percentile)	Hall J, et al (2023). (10.1007/s12237-023-01185-y)
   if (is.null(N0)) N0 <- 1
   
   # Initialize population size vector
   pop_size <- numeric(gen + 1)
   pop_size[1] <- N0
+ 
   
-  # Run simulation over generations
   for (i in 1:gen) {
-    r_curr <- ifelse(stochastic_r, rnorm(1, r, 0.1), r)
-    K_curr <- ifelse(stochastic_K, rnorm(1, K, 50), K)
-    pop_size[i + 1] <- as.integer(pop_size[i] * exp(r_curr * (1 - pop_size[i] / K_curr)))
+    # If stochasticity in r is enabled, apply log-normal environmental noise
+    r_curr <- if (stochastic_r) r * exp(rnorm(1, 0, 0.15)) else  r
+    
+    # If stochasticity in K is enabled, allow environmental variation in carrying capacity
+    # The log-normal form ensures K always stays positive
+    K_curr <- if (stochastic_K)  K * exp(rnorm(1, 0, 0.25)) else K
+    
+    # Prevent biologically impossible values caused by extreme draws
+    r_curr <- max(r_curr, 0.001)
+    K_curr <- max(K_curr, 5)
+    
+    # Update population size using a Ricker-type density-dependent model
+    # Growth slows as population approaches carrying capacity
+    pop_size[i + 1] <-
+      pop_size[i] * exp(r_curr * (1 - pop_size[i] / K_curr))
   }
-
+  
+   
   # Plot results if requested
   if (plotting) {
     plot(0:gen, pop_size, type = 'l', col = 'blue', ylim = c(0, max(pop_size)),
@@ -38,6 +53,7 @@ pop_growth <- function(N0 = NULL, r = NULL, K = NULL, gen, stochastic_r = FALSE,
   }
   return(pop_size)
 }
+
 
 #############################################
 #Function to adjust the format as numeric ##
