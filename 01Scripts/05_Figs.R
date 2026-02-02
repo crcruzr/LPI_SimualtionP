@@ -25,16 +25,16 @@ f1c <- read.csv('04FinalData/complete/simulated/Conv_conc_lin/Conv_conc_lin.csv'
 f1c <- plot_lpi_table(f1c, colors = colors);f1c
 ggsave(filename=paste0("05Plots/Fig1c.jpeg"), p11, dpi = 300)
 
-plot_data2 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gaps.csv')
+plot_data2 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gapsMed.csv')
 p11 <- plot_lpi_table(plot_data2, colors = colorsG, show_label = F); p11
 ggsave(filename=paste0("05Plots/Fig1f.jpeg"), p11, dpi = 300)
 
-plot_data3 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/linear_gaps.csv')
+plot_data3 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/linear_gapsMed.csv')
 p12 <- plot_lpi_table(plot_data3, colors = colorsG, show_label = F);p12
 ggsave(filename=paste0("05Plots/Fig1e.jpeg"), p12, dpi = 300)
 
-plot_data2 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/Conv_gaps.csv')
-p13 <- plot_lpi_table(plot_data2, colors = colorsG, show_label = T); p13
+plot_data2 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/Conv_gapsMed.csv')
+p13 <- plot_lpi_table(plot_data2, colors = colorsG, show_label = F); p13
 ggsave(filename=paste0("05Plots/Fig1f.jpeg"), p13, dpi = 300)
 
 # Combine all Fig 1 panels
@@ -63,9 +63,10 @@ f1 <- (f1b | f1a) /
     color = guide_legend(override.aes = list(size = 4))
   )
 
-ggsave(filename = "05Plots/Fig1.jpeg", plot = f1, width = 10, height = 10, units = "in", dpi = 300)
+ggsave(filename = "05Plots/FigB.jpeg", plot = f1, width = 10, height = 10, units = "in", dpi = 300)
 
 #### Fig 2 ####
+
 lpi_simul_real_temp <- read.csv('04FinalData/complete/simulated/real_template/real_dataSet.csv')
 f2a <- plot_lpi(lpi_simul_real_temp, colr = colr, show_label = FALSE, label_name = ""); f2a
 ggsave(filename=paste0("05Plots/Fig2a.jpeg"), f2a, dpi = 300) ## plot used in the paper
