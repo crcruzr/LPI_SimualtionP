@@ -3,29 +3,59 @@ library(ggplot2)
 library(missMethods)
 library(tidyverse)
 library(RColorBrewer)
-library(data.table)
 
 route <- '03processedData/'
+set.seed(42)  # For reproducibility
 source('01Scripts/Functions.r')
 
-# For reproducibility
-set.seed(42)
+# Example simulation
+sim_result <- pop_growth(N0 = 10, r = 0.1, K = 300, gen = 500, stochastic_r = TRUE, stochastic_K = TRUE, plotting = FALSE)
 
-# Trend simulation and comparison
-years <- 1950:2019
-x <- seq(0, 1, length.out = length(years))
-vect_conv <- round(((60 * (1 - x^0.2)) + 40), 2); plot(vect_conv)
-vect_linD <- round(((60 * (1 - x^1)) + 40), 2);  plot(vect_linD)
-vect_conc <- round(((60 * (1 - x^5)) + 40), 2); plot(vect_conc)
+# Add observation error to simulation results
+obs_error <- rbinom(n = length(sim_result), size = sim_result, p = 0.1) # p=0.1 higest variation
+plot(scale(obs_error))
 
-# Compare different trend matrices
-trend_list <- list(vect_conv, vect_linD, vect_conc)
-trend_matrices <- list()
+# Simulate multiple species
+num_years <- 500
+num_species <- 60000
+species_data <- data.frame(matrix(NA, nrow = num_species, ncol = num_years))
+ran_pop_sizes <- NA
+start_time <- Sys.time()
+
+# Simulate population growth for each species
+for (i in 1:num_species) {
+    init_pop <- as.integer(10^(runif(1, min = 1.1, max = 5)))
+    
+    sim_result <- pop_growth(N0 = init_pop, r = 0.5, K = as.integer((init_pop * 100) / 95), gen = num_years - 1, stochastic_r = TRUE, stochastic_K = TRUE, plotting = FALSE)
+    
+    # Add observation error
+    obs_error <- rbinom(n = length(sim_result), size = sim_result, p = 0.9)
+    sim_result <- sim_result + obs_error
+    species_data[i,] <- sim_result
+    ran_pop_sizes <- c(ran_pop_sizes, init_pop)
+} ;end_time <- Sys.time()
+
+end_time - start_time #55.13609 mins
+
+# Remove time series with zero values after 200 generations
+species_data2 <- as.data.frame((species_data))
+species_data_clean <- species_data2 %>%
+  filter(complete.cases(.[, 200:ncol(.)])) %>%
+  filter(rowSums(.[, 200:ncol(.)] == 0) == 0) %>%
+  filter(rowSums(.[, 200:ncol(.)] != 0) == (ncol(.) - 199))
+
+# Subset the cleaned data for a specific range
+
+# Save cleaned data to disk
+dir.create(paste0(route))
+save(species_data_clean, file = paste0(route,'Species_simulations.RData'))
 
 # Load and plot subset data
-load(file = '03processedData/Species_simulations.RData')
+load(file = paste0('03processedData/Species_simulations.RData'))
+plot(as.numeric(species_data_clean[9,]))
 
 # Simulate data matrix for LPI structure
+years <- 1950:2020 ## Modified to add the same number of years in the LPI
 S <- 32680 ## Modified to add the same number of rows in the LPI
 
 #dimension LPI
@@ -34,211 +64,109 @@ species_data_subset <- species_data_clean[
   sample(ncol(species_data_clean), length(years))
 ]
 
-for (i in 1:3) {
-  trend_matrices[[i]] <- sweep(species_data_subset, 2, trend_list[[i]] / 100, "*")
-} 
+plot(as.numeric(species_data_clean[1001,]))
+species_data_final<- bino_id(species_data_subset, years, S)
 
-# Verify similarity between trend matrices - It should be different 
-identical(trend_matrices[[1]], trend_matrices[[2]])
-identical(trend_matrices[[1]], trend_matrices[[3]])
-identical(trend_matrices[[2]], trend_matrices[[3]])
-
-plot(as.numeric(as.matrix(trend_matrices[[1]][1:10, ])))
-plot(as.numeric(as.matrix(trend_matrices[[2]][1:10, ])))
-plot(as.numeric(as.matrix(trend_matrices[[3]][1:10, ])))
-
-# Add ID, binomial and ID
-lpi_trend_matrices <- lapply(
-  trend_matrices,
-  bino_id,
-  years =years,
-  num_species = S
-)
-
-# Simulate trends for different datasets
-trend_names <- c('Convex Decrease', 'Linear Decrease', 'Concave Decrease')
-high_results <- list()
-
-dir.create("03processedData/complete/simulated/Conv_conc_lin/",
+dir.create("03processedData/complete/simulated/Complete_dataSet",
            recursive = TRUE,
            showWarnings = FALSE)
 
-# Loop to generate LPI for each trend matrix
-for (i in 1:length(lpi_trend_matrices)) {
-  high_results[[i]] <- LPIMain(
-    create_infile(lpi_trend_matrices[[i]], index_vector = TRUE, 
-                  name = paste0('03processedData/complete/simulated/Conv_conc_lin/', trend_names[i]),
-                  start_col_name = "X1950", end_col_name = "X2019", CUT_OFF_YEAR = 1950),
-    title = trend_names[i], REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
-  )
-}
-
-# Unify plots
-labels <- c("concave", "linear", "convex")
-colors <- c("#558ed5", "#77933d", "#4a452a")  # your specified colors
-
-to_plot<- out <- bind_rows(
-  lapply(seq_along(high_results), function(i) {
-    df <- as.data.frame(high_results[[i]])
-    df$years <- 1950:2020
-    df$label <- labels[i]
-    df$sim <- 1
-    df
-  })
+# Compute LPI using simulated data with the full dataset
+lpi_result <- LPIMain(
+  create_infile(species_data_final, index_vector = TRUE, name = '03processedData/complete/simulated/Complete_DataSet', 
+                start_col_name = "X1950", end_col_name = "X2019", CUT_OFF_YEAR = 1950),
+  title = 'LPI Results Simulated Data - Full Dataset', REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
 
-dir.create("04FinalData/complete/simulated/Conv_conc_lin/",
+ggplot_lpi(lpi_result)
+
+colr <- c("#9467bd", "#c5b0d5")  # Purple + lighter purple
+lpi_result$years <- years
+f1a <- plot_lpi(lpi_result, colr = colr, label_name = "Simulation Data")
+ggsave(filename=paste0("05Plots/Fig1a.jpeg"), f1a, dpi = 300) ## plot used in the paper
+
+
+dir.create("04FinalData/complete/simulated/Complete_dataSet",
            recursive = TRUE,
            showWarnings = FALSE)
 
-write.csv(to_plot, '04FinalData/complete/simulated/Conv_conc_lin/Conv_conc_lin.csv')
-to_plot <- read.csv('04FinalData/complete/simulated/Conv_conc_lin/Conv_conc_lin.csv')
+write.csv(lpi_result, '04FinalData/complete/simulated/Complete_dataSet/Complete_dataSet.csv')
+lpi_result <- read.csv('04FinalData/complete/simulated/Complete_dataSet/Complete_dataSet.csv')
 
-f1c <- plot_lpi_table(to_plot, colors = colors);f1c
+# Read and process real LPI data
+###################################
 
-write.csv()
+#To process it you should download the LPD data from the LPI website https://www.livingplanetindex.org/data_portal and save it in the folder 00RawData.
+# The file name should be adjusted if it is different
 
-## Removing data 
-dir.create("03processedData/complete/simulated/Conv_conc_lin_Remdt/",
+lpi_data <- read.csv('00RawData/LPD_2024_public.csv') #inclde in this folder the LPD data
+
+dir.create("03processedData/complete/real/Complete_dataSet",
            recursive = TRUE,
            showWarnings = FALSE)
 
-### Remove randomlty data
-red_values <- seq(.2, .8, by =.2)
-red_values <- c(red_values, 0.95)
-remove_data_vect <- list()
-ad<- list()
+lpi_resultR <- LPIMain(
+  create_infile(lpi_data, index_vector = TRUE, name = '03processedData/complete/real/Complete_dataSet', 
+                start_col_name = "X1950", end_col_name = "X2019", CUT_OFF_YEAR = 1950),
+  title = 'LPI Results Real Data', REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
+)
 
-## Loop to remove data using the original
-for(g in 1:length(lpi_trend_matrices)) {
-    for(w in 1:length(red_values)){
-    ad[[w]] <- delete_MCAR(lpi_trend_matrices[[g]][,c(1:71)], red_values[w])
-    ad[[w]] <- bino_id(ad[[w]], years, S)
-}
-names(ad)<-red_values 
-remove_data_vect[[g]] <- ad
-}
+lpi_resultR$years <- years
 
-#test
-head(remove_data_vect[[1]][[4]]) ##Convex with less 80
-head(remove_data_vect[[1]][[5]]) ##Convex with less 80
+colr2 <- c("#ff7f0e", "#ffbb78")  # Orange + lighter orange
+f1b <- plot_lpi(lpi_resultR, colr = colr2, label_name = "Living Planet \n Database");f1b
 
-names(remove_data_vect[[1]])
-names(remove_data_vect)
-names(remove_data_vect) <- trend_names
-length(remove_data_vect)
-length(remove_data_vect[[1]])
+ggsave(filename=paste0("05Plots/Fig1b.jpeg"), f1b, dpi = 300) ## plot used in the paper
 
-plot(as.numeric(as.matrix(remove_data_vect[[2]][[4]][1:100, ]))) ##Linear with less 80
-plot(as.numeric(as.matrix(remove_data_vect[[2]][[1]][1:100, ]))) ##Linear with less 80
-plot(as.numeric(as.matrix(remove_data_vect[[2]][[5]][1:100, ]))) ##Linear with less 80
-
-plot(as.numeric(as.matrix(remove_data_vect[[3]][[5]][1:100, ]))) ##Linear with less 80
-
-# Remove "Binomial" column from data frames in the third level
-names = c('20%', '40%', '60%', '80%', '95%')
-
-gF<-gT <- NA
-
-## MEGA matrix to plot the data set
-for (i in 1:3) {
-  g.i2 <- remove_data_vect[[i]]
-  g.i2 <- lapply(g.i2, function(x) x[!(names(x) %in% c("Binomial"))])
-
-  for (h  in 1:length(g.i2)) {
-    g.il<- as.data.frame(g.i2[[h]])
-    g.i.i<- bind_rows(
-    g.il |> mutate(ID = paste0("spp", 1:n())) |> pivot_longer(cols = -ID, names_to = "Year", values_to = "Value") |> mutate(Trend = names[h]))
-    g.i.i$Category <- trend_names[i]
-    gT <- rbind(gT, g.i.i)
-   }
-  gF <-rbind(gF, gT)
-}
-
-gF <- gF[!is.na(gF$Trend),]
-gF$Trend <- factor(gF$Trend, levels = c('20%', '40%', '60%', '80%', '95%'))
-
-#####################################################################################################################
-## Loop to generaate the LPI with linear, concave and convex  removing 0, 20%, 40%, 60% y 80% percent of the dataset
-#########################################################################################################################
-
-RemovingData_results <- list()
-min <- list()
-route<-'03processedData/complete/simulated/Conv_conc_lin_Remdt/'
-
-# loop to generate LPI for each trend matrix with missing data
-start_time <- Sys.time()
-for (i in 1:length(remove_data_vect)) {
-x<- remove_data_vect[[i]]
-    for(j in 1:length(x)){
-      x.j <- as.data.frame(x[[j]])
-      x.j <- x.j[c(1:10),] ## Activate to test if everything works
-      min[[j]]<- LPIMain( (create_infile(x.j, index_vector = TRUE,
-                                                name = paste0(route, trend_names[i],'_removing', red_values[j],'%ofData'),
-                                                start_col_name = "X1950",
-                                                end_col_name = "X2019", CUT_OFF_YEAR = 1950)),
-                                  title = paste0(trend_names[i], '. Removing ', red_values[j],' of Data') ,
-                                  REF_YEAR = 1950,
-                                  PLOT_MAX = 2019,
-                                  BOOT_STRAP_SIZE = 1000,
-                                  VERBOSE=FALSE
-      )
-    }
-#names(min)<-paste0('removing_', red_values[j],'%_of_Data') 
-RemovingData_results[[i]] <- min
-};end_time <- Sys.time()
-end_time - start_time #1.030387 mins
-
-# Create a list to store the subsets
-Concave_miss_data <- c(RemovingData_results[[1]][1:5])
-linear_miss_data <- c(RemovingData_results[[2]][1:5])
-convex_miss_data <- c(RemovingData_results[[3]][1:5])
-
-names(Concave_miss_data) <-  names
-names(linear_miss_data) <-  names
-names(convex_miss_data) <-  names
-years <- 1950:2020
-
-for (lst in list(Concave_miss_data, linear_miss_data, convex_miss_data)) {
-  for (i in seq_along(lst)) {
-    setDT(lst[[i]])[, years := years]
-  }
-}
-
-dir.create("04FinalData/complete/simulated/Conv_conc_lin_Remdt/",
+dir.create("04FinalData/complete/real/Complete_dataSet",
            recursive = TRUE,
            showWarnings = FALSE)
 
+write.csv(lpi_resultR, '04FinalData/complete/real/Complete_dataSet/Complete_dataSet.csv')
+lpi_resultR <- read.csv('04FinalData/complete/real/Complete_dataSet/Complete_dataSet.csv')
 
-colorsG <- c("#558ed5", "#77933d", "#4a452a", "#d87c30", "#5b9aa0")
+###############################
+### Variation in the simulation
+################################
 
-## concave
-plot_data2 <-map_df(seq_along(Concave_miss_data), ~ 
-  mutate(Concave_miss_data[[.x]], sim = .x, label = names[.x])
+lpi_data_filtered <- lpi_data %>% select(34:104) #only years
+
+# Remove double quotes and convert non-"NULL" values to numeric
+lpi_data_filtered<- clean_data(lpi_data_filtered)
+
+# Resample simulated data to match real data dimensions
+load(file = paste0('03processedData/Species_simulations.RData'))
+species_data_final <- species_data_clean[sample(nrow(species_data_clean), nrow(lpi_data_filtered)), sample(ncol(species_data_clean), ncol(lpi_data_filtered))]
+
+# Add simulated data to real data structure
+mask <- is.na(lpi_data_filtered) | lpi_data_filtered == 0
+lpi_data_filtered[!mask] <- species_data_final[!mask]
+lpi_data_filtered <- bino_id(lpi_data_filtered, years, S)
+
+# Compute LPI with the combined dataset 
+dir.create("03processedData/complete/simulated/real_template",
+           recursive = TRUE,
+           showWarnings = FALSE)
+
+lpi_simul_real_temp <- LPIMain(
+  create_infile(lpi_data_filtered, index_vector = TRUE, name = '03processedData/complete/simulated/real_template',
+                start_col_name = "X1950", end_col_name = "X2019", CUT_OFF_YEAR = 1950),
+  title = 'LPI Results Simulated Data - real Template', REF_YEAR = 1950, PLOT_MAX = 2019, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
-write.csv(plot_data2, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/Conv_gaps.csv')
-plot_data2 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/Conv_gaps.csv')
-p11 <- plot_lpi_table(plot_data2, colors = colorsG); p11
-ggsave(filename=paste0("05Plots/Fig1f.jpeg"), p11, dpi = 300)
 
-# linear
-plot_data3 <-map_df(seq_along(linear_miss_data), ~ 
-  mutate(linear_miss_data[[.x]], sim = .x, label = names[.x])
-)
-write.csv(plot_data3, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/linear_gaps.csv')
-plot_data3 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/linear_gaps.csv')
-p12 <- plot_lpi_table(plot_data3, colors = colorsG);p12
-ggsave(filename=paste0("05Plots/Fig1e.jpeg"), p12, dpi = 300)
+dir.create("04FinalData/complete/simulated/real_template",
+           recursive = TRUE,
+           showWarnings = FALSE)
 
-#c# onvex
-plot_data4 <-map_df(seq_along(convex_miss_data), ~ 
-  mutate(convex_miss_data[[.x]], sim = .x, label = names[.x])
-)
-write.csv(plot_data4, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gaps.csv')
-plot_data4 <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gaps.csv')
-p13 <- plot_lpi_table(plot_data4, colors = colorsG); p13
-ggsave(filename=paste0("05Plots/Fig1d.jpeg"), p13, dpi = 300)
+lpi_simul_real_temp$years <- years
 
-############
-### END ####
-############
+write.csv(lpi_simul_real_temp, '04FinalData/complete/simulated/real_template/real_dataSet.csv')
+
+f2a <- plot_lpi(lpi_simul_real_temp, colr = colr, show_label = FALSE, label_name = "")
+f2a
+ggsave(filename=paste0("05Plots/Fig2a.jpeg"), f2a, dpi = 300) ## plot used in the paper
+lpi_simul_real_temp <- read.csv('04FinalData/complete/simulated/real_template/real_dataSet.csv')
+
+###########
+### END ###
+###########
