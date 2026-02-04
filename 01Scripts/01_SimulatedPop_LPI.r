@@ -77,10 +77,10 @@ dir.create("03processedData/complete/simulated/Complete_dataSet",
            recursive = TRUE,
            showWarnings = FALSE)
 
-# Compute LPI using simulated data with the full dataset
+# Compute LPI using the complete simulated population dataset 
 lpi_result <- LPIMain(
   create_infile(species_data_subset, index_vector = TRUE, name = '03processedData/complete/simulated/Complete_DataSet', 
-                start_col_name = "X1950", end_col_name = "X2019", CUT_OFF_YEAR = 1950),
+                start_col_name = "X1950", end_col_name = "X2020", CUT_OFF_YEAR = 1950),
   title = 'LPI Results Simulated Data - Full Dataset', REF_YEAR = 1950, PLOT_MAX = 2020, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
 
@@ -107,13 +107,15 @@ lpi_result <- read.csv('04FinalData/complete/simulated/Complete_dataSet/Complete
 
 lpi_data <- read.csv('00RawData/LPD_2024_public.csv') #inclde in this folder the LPD data
 
+
+# Compute the LPI using the empirical population data present in the LPD 
 dir.create("03processedData/complete/real/Complete_dataSet",
            recursive = TRUE,
            showWarnings = FALSE)
 
 lpi_resultR <- LPIMain(
   create_infile(lpi_data, index_vector = TRUE, name = '03processedData/complete/real/Complete_dataSet', 
-                start_col_name = "X1950", end_col_name = "X2019", CUT_OFF_YEAR = 1950),
+                start_col_name = "X1950", end_col_name = "2020", CUT_OFF_YEAR = 1950),
   title = 'LPI Results Real Data', REF_YEAR = 1950, PLOT_MAX = 2020, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
 
@@ -152,23 +154,23 @@ species_data_subset <- species_data_subset[sample(nrow(species_data_subset), nro
 plot(as.numeric(species_data_subset[sample(1:nrow(species_data_subset),1),]))
 
 # Add simulated data to real data structure
-plot(as.numeric(lpi_data_filtered[80,]))
+plot(as.numeric(lpi_data_filtered[80,])) #how look like the full data (check the aixs Y values)
 mask <- is.na(lpi_data_filtered) | lpi_data_filtered == 0
 lpi_data_filtered[!mask] <- species_data_subset[!mask]
 lpi_data_filtered <- bino_id(lpi_data_filtered, years, S)
-plot(as.numeric(lpi_data_filtered[80,c(1:71)]))
+points(as.numeric(lpi_data_filtered[80,c(1:71)], add = T, col = 'red', pch = 20)) #how look like after replace the data, based in the LPD (check the aixs Y values)
 
-plot(as.numeric(lpi_data_filtered[sample(1:nrow(lpi_data_filtered),1),]))
-any(lpi_data_filtered == 0)
+plot(as.numeric(lpi_data_filtered[sample(1:nrow(lpi_data_filtered),1),])) #check randomly ho looks a random population on the dataset/ You can rerunr multiple times to see how it vary
+any(lpi_data_filtered == 0)  #check if there are some celds with zero
 
-# Compute LPI with the combined dataset 
+# Compute LPI incorporating null and zero values in the simulated data
 dir.create("03processedData/complete/simulated/real_template",
            recursive = TRUE,
            showWarnings = FALSE)
 
 lpi_simul_real_temp <- LPIMain(
   create_infile(lpi_data_filtered, index_vector = TRUE, name = '03processedData/complete/simulated/real_template',
-                start_col_name = "X1950", end_col_name = "X2019", CUT_OFF_YEAR = 1950),
+                start_col_name = "X1950", end_col_name = "X2020", CUT_OFF_YEAR = 1950),
   title = 'LPI Results Simulated Data - real Template', REF_YEAR = 1950, PLOT_MAX = 2020, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
 

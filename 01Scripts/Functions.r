@@ -39,8 +39,7 @@ pop_growth <- function(N0 = NULL, r = NULL, K = NULL, gen, stochastic_r = FALSE,
     
     # Update population size using a Ricker-type density-dependent model
     # Growth slows as population approaches carrying capacity
-    pop_size[i + 1] <-
-      pop_size[i] * exp(r_curr * (1 - pop_size[i] / K_curr))
+    pop_size[i + 1] <- round(pop_size[i] * exp(r_curr * (1 - pop_size[i] / K_curr)))
   }
   
    

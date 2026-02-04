@@ -63,7 +63,7 @@ f1 <- (f1b | f1a) /
     color = guide_legend(override.aes = list(size = 4))
   )
 
-ggsave(filename = "05Plots/FigB.jpeg", plot = f1, width = 10, height = 10, units = "in", dpi = 300)
+ggsave(filename = "05Plots/Fig1.jpeg", plot = f1, width = 10, height = 10, units = "in", dpi = 300)
 
 #### Fig 2 ####
 

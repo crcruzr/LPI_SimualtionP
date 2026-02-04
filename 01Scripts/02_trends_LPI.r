@@ -98,7 +98,7 @@ f1c <- plot_lpi_table(to_plot, colors = colors);f1c
 
 
 #####################################################################################################################
-## Loop to generaate the LPI with linear, concave and convex  removing 0, 20%, 40%, 60% y 80% percent of the dataset
+## Loop to computes the LPI with linear, concave and convex removing 0, 20%, 40%, 60% y 80% percent of the dataset
 #####################################################################################################################
 
 dir.create("03processedData/complete/simulated/Conv_conc_lin_Remdt/",
@@ -113,7 +113,7 @@ ad<- list()
 
 ## Loop to remove data using the original
 remove_data_vect <- vector("list", length(lpi_trend_matrices))
-n_rep <-100
+n_rep <-50
 
 for (g in seq_along(lpi_trend_matrices)) {
   trend_list <- vector("list", length(red_values))
@@ -134,7 +134,7 @@ for (g in seq_along(lpi_trend_matrices)) {
   remove_data_vect[[g]] <- trend_list
 }
 
-#test
+#Test the matrices based on the comparison of the data count.
 sum(is.na(lpi_trend_matrices[[1]]))
 sum(is.na(remove_data_vect[[1]][[4]][[1]]))
 head(remove_data_vect[[1]][[4]],3) ##Convex with less 80
@@ -143,6 +143,7 @@ head(remove_data_vect[[3]][[5]][[1]],3) ##Convex with less 80
 sum(is.na(remove_data_vect[[3]][[5]][[1]]))
 
 
+#Check the names fo the df
 names(remove_data_vect[[1]])
 names(remove_data_vect)
 names(remove_data_vect) <- trend_names
@@ -151,14 +152,16 @@ length(remove_data_vect[[1]])
 length(remove_data_vect[[2]])
 length(remove_data_vect[[3]])
 
+# Plot the results to see how the data remotion was done
 plot(as.numeric(as.matrix(remove_data_vect[[3]][[4]][[1]][1:100, ]))) ##Linear with less 80
 plot(as.numeric(as.matrix(remove_data_vect[[3]][[1]][[1]][1:100, ]))) ##Linear with less 20
 plot(as.numeric(as.matrix(remove_data_vect[[3]][[5]][[1]][1:100, ]))) ##Linear with less 95
 
-## LPI application 
-###########################
+## Computes the LPI in all of the matrices
+############################################ 
 RemovingData_results <- vector("list", length(remove_data_vect))
 route<-'03processedData/complete/simulated/Conv_conc_lin_Remdt/'
+
 
 for (i in seq_along(remove_data_vect)) {
   trend_block <- vector("list", length(remove_data_vect[[i]]))
@@ -216,14 +219,20 @@ Remresu_Join <- map_df(seq_along(RemovingData_results), function(trend_idx) {
   })
 })
 
+write.csv(Remresu_Join, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/RemovingData_results.csv')
+
+Remresu_Join<- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/RemovingData_results.csv')
+
 MeanRemresu_Join <- Remresu_Join %>%
   group_by(trend_type, label, years) %>%
   summarise(
-    CI_high  = max(CI_high, na.rm = TRUE),
-    CI_low   = min(CI_low,  na.rm = TRUE),
+    CI_high  = median(CI_high, na.rm = TRUE),
+    CI_low   = median(CI_low,  na.rm = TRUE),
     LPI_final = median(LPI_final, na.rm = TRUE),
     .groups = "drop" ) %>%
   mutate(sim = "median")
+
+write.csv(MeanRemresu_Join, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/RemovingData_resultsMedian.csv')
 
 colorsG <- c("#558ed5", "#77933d", "#4a452a", "#d87c30", "#5b9aa0")
 
@@ -241,7 +250,6 @@ convex_miss_data <- MeanRemresu_Join %>% filter(trend_type == "Convex Decrease")
 p13 <- plot_lpi_table(convex_miss_data, colors = colorsG); p13
 write.csv(convex_miss_data, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gapsMed.csv')
 ggsave(filename=paste0("05Plots/Fig1d.jpeg"), p13, dpi = 300)
-
 
 Concave_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/Conv_gapsMed.csv')
 linear_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/linear_gapsMed.csv')
