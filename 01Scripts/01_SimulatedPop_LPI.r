@@ -115,7 +115,7 @@ dir.create("03processedData/complete/real/Complete_dataSet",
 
 lpi_resultR <- LPIMain(
   create_infile(lpi_data, index_vector = TRUE, name = '03processedData/complete/real/Complete_dataSet', 
-                start_col_name = "X1950", end_col_name = "2020", CUT_OFF_YEAR = 1950),
+                start_col_name = "X1950", end_col_name = "X2020", CUT_OFF_YEAR = 1950),
   title = 'LPI Results Real Data', REF_YEAR = 1950, PLOT_MAX = 2020, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
 
