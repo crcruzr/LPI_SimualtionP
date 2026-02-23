@@ -167,9 +167,9 @@ ggsave(filename=paste0("05Plots/Fi2.jpeg"), f2, dpi = 300) ## plot used in the p
 ################################################################################
 
 # Number of permutations with NA
-nper<-  length(list.files('03processedData/constrain/napermutations/processing/', pattern = "It_", full.names = TRUE))
+nper<-  length(list.files('03processedData/constrain/napermutations/results/', pattern = "It_", full.names = TRUE))
 resultsPermuNA <- lapply(1:nper, function(i) {
-  filepath <- sprintf("03processedData/constrain/napermutations/results/permutation_result_%03d.rds", i)
+  filepath <- sprintf("04FinalData/constrain/napermutations/results/permutation_result_%03d.rds", i)
   if (file.exists(filepath)) {
     readRDS(filepath)
   } else {
