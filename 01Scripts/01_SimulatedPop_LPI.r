@@ -1,10 +1,9 @@
 library(rlpi)
 library(ggplot2)
-library(missMethods)
+#library(missMethods)
 library(tidyverse)
 library(RColorBrewer)
 
-route <- '03processedData/'
 set.seed(42)  # For reproducibility
 source('01Scripts/Functions.r')
 
@@ -15,7 +14,6 @@ obs_error <- rbinom( n = length(sim_result),  size = round(sim_result), p = 0.1)
 plot((sim_result +obs_error), col = 'red',  pch = 20)
 
 # Simulate multiple species
-
 num_years <- 500
 num_species <- 40000
 #species_data <- data.frame(matrix(NA, nrow = num_species, ncol = num_years))
@@ -52,11 +50,10 @@ any(species_data_clean == 0)
 # Subset the cleaned data for a specific range
 
 # Save cleaned data to disk
-dir.create(paste0(route))
-save(species_data_clean, file = paste0(route,'Species_simulations.RData'))
+save(species_data_clean, file = '03processedData/Species_simulations.RData')
 
 # Load and plot subset data
-load(file = paste0('03processedData/Species_simulations.RData'))
+#load(file = paste0('03processedData/Species_simulations.RData'))
 plot(as.numeric(species_data_clean[sample(1:nrow(species_data_clean),1),]))
 
 # Simulate data matrix for LPI structure
@@ -83,10 +80,11 @@ lpi_result <- LPIMain(
                 start_col_name = "X1950", end_col_name = "X2020", CUT_OFF_YEAR = 1950),
   title = 'LPI Results Simulated Data - Full Dataset', REF_YEAR = 1950, PLOT_MAX = 2020, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
+print("lpi using the complete simulated population dataset done")
 
 ggplot_lpi(lpi_result)
 
-colr <- c("#9467bd", "#c5b0d5")  # Purple + lighter purple
+ colr <- c("#9467bd", "#c5b0d5")  # Purple + lighter purple
 
 lpi_result$years <- c(years, 2021)
 f1a <- plot_lpi(lpi_result, colr = colr, label_name = "Simulation Data");f1a
@@ -97,18 +95,16 @@ dir.create("04FinalData/complete/simulated/Complete_dataSet",
            showWarnings = FALSE)
 
 write.csv(lpi_result, '04FinalData/complete/simulated/Complete_dataSet/Complete_dataSet.csv')
-lpi_result <- read.csv('04FinalData/complete/simulated/Complete_dataSet/Complete_dataSet.csv')
+#lpi_result <- read.csv('04FinalData/complete/simulated/Complete_dataSet/Complete_dataSet.csv')
 
 # Read and process real LPI data
 ###################################
 
 #To process it you should download the LPD data from the LPI website https://www.livingplanetindex.org/data_portal and save it in the folder 00RawData.
 # The file name should be adjusted if it is different
-
 lpi_data <- read.csv('00RawData/LPD_2024_public.csv') #inclde in this folder the LPD data
 
-
-# Compute the LPI using the empirical population data present in the LPD 
+# # Compute the LPI using the empirical population data present in the LPD 
 dir.create("03processedData/complete/real/Complete_dataSet",
            recursive = TRUE,
            showWarnings = FALSE)
@@ -118,10 +114,11 @@ lpi_resultR <- LPIMain(
                 start_col_name = "X1950", end_col_name = "X2020", CUT_OFF_YEAR = 1950),
   title = 'LPI Results Real Data', REF_YEAR = 1950, PLOT_MAX = 2020, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
+print("LPI using the empirical population data present in the LPD done")
 
 lpi_resultR$years <- c(years, 2021)
 
-colr2 <- c("#ff7f0e", "#ffbb78")  # Orange + lighter orange
+ colr2 <- c("#ff7f0e", "#ffbb78")  # Orange + lighter orange
 f1b <- plot_lpi(lpi_resultR, colr = colr2, label_name = "Living Planet \n Database");f1b
 
 ggsave(filename=paste0("05Plots/Fig1b.jpeg"), f1b, dpi = 300) ## plot used in the paper
@@ -131,7 +128,7 @@ dir.create("04FinalData/complete/real/Complete_dataSet",
            showWarnings = FALSE)
 
 write.csv(lpi_resultR, '04FinalData/complete/real/Complete_dataSet/Complete_dataSet.csv')
-lpi_resultR <- read.csv('04FinalData/complete/real/Complete_dataSet/Complete_dataSet.csv')
+# #lpi_resultR <- read.csv('04FinalData/complete/real/Complete_dataSet/Complete_dataSet.csv')
 
 ###############################
 ### Variation in the simulation
@@ -143,7 +140,7 @@ lpi_data_filtered <- lpi_data %>% select(matches("^X[0-9]")) #only years
 lpi_data_filtered<- clean_data(lpi_data_filtered)
 
 # Resample simulated data to match real data dimensions
-load(file = paste0('03processedData/Species_simulations.RData'))
+#load(file = paste0('03processedData/Species_simulations.RData'))
 
 # Select randomly the population generation
 cx <- ncol(species_data_clean) - length(years) + 1
@@ -174,6 +171,8 @@ lpi_simul_real_temp <- LPIMain(
   title = 'LPI Results Simulated Data - real Template', REF_YEAR = 1950, PLOT_MAX = 2020, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
 
+print("LPI incorporating null and zero values in the simulated data done")
+
 dir.create("04FinalData/complete/simulated/real_template",
            recursive = TRUE,
            showWarnings = FALSE)
@@ -184,7 +183,10 @@ write.csv(lpi_simul_real_temp, '04FinalData/complete/simulated/real_template/rea
 
 f2a <- plot_lpi(lpi_simul_real_temp, colr = colr, show_label = FALSE, label_name = "") ;f2a
 ggsave(filename=paste0("05Plots/Fig2a.jpeg"), f2a, dpi = 300) ## plot used in the paper
-lpi_simul_real_temp <- read.csv('04FinalData/complete/simulated/real_template/real_dataSet.csv')
+#lpi_simul_real_temp <- read.csv('04FinalData/complete/simulated/real_template/real_dataSet.csv')
+
+print("The entire script has been executed correctly")
+
 
 ###########
 ### END ###

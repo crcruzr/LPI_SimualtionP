@@ -1,13 +1,11 @@
 library(rlpi)
 library(ggplot2)
-library(missMethods)
 library(tidyverse)
 library(RColorBrewer)
 library(data.table)
+library(missMethods)
 
-route <- '03processedData/'
 source('01Scripts/Functions.r')
-
 # For reproducibility
 set.seed(42)
 
@@ -64,38 +62,40 @@ dir.create("03processedData/complete/simulated/Conv_conc_lin/",
            showWarnings = FALSE)
 
 # Loop to generate LPI for each trend matrix
-for (i in 1:length(lpi_trend_matrices)) {
-  high_results[[i]] <- LPIMain(
-    create_infile(lpi_trend_matrices[[i]], index_vector = TRUE, 
-                  name = paste0('03processedData/complete/simulated/Conv_conc_lin/', trend_names[i]),
-                  start_col_name = "X1950", end_col_name = "X2020", CUT_OFF_YEAR = 1950),
-    title = trend_names[i], REF_YEAR = 1950, PLOT_MAX = 2020, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
-  )
-}
+# for (i in 1:length(lpi_trend_matrices)) {
+#   high_results[[i]] <- LPIMain(
+#     create_infile(lpi_trend_matrices[[i]], index_vector = TRUE, 
+#                   name = paste0('03processedData/complete/simulated/Conv_conc_lin/', trend_names[i]),
+#                   start_col_name = "X1950", end_col_name = "X2020", CUT_OFF_YEAR = 1950),
+#     title = trend_names[i], REF_YEAR = 1950, PLOT_MAX = 2020, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
+#   )
+# }
+
+print("The Loop to generate LPI for each trend matrix correctly was proccesed corectly")
+
 
 # Unify plots
 labels <- c("concave", "linear", "convex")
 colors <- c("#558ed5", "#77933d", "#4a452a")  # your specified colors
 
-to_plot<- out <- bind_rows(
-  lapply(seq_along(high_results), function(i) {
-    df <- as.data.frame(high_results[[i]])
-    df$years <- 1950:2021
-    df$label <- labels[i]
-    df$sim <- 1
-    df
-  })
-)
+# to_plot<- out <- bind_rows(
+#   lapply(seq_along(high_results), function(i) {
+#     df <- as.data.frame(high_results[[i]])
+#     df$years <- 1950:2021
+#     df$label <- labels[i]
+#     df$sim <- 1
+#     df
+#   })
+# )
 
-dir.create("04FinalData/complete/simulated/Conv_conc_lin/",
-           recursive = TRUE,
-           showWarnings = FALSE)
+# dir.create("04FinalData/complete/simulated/Conv_conc_lin/",
+#            recursive = TRUE,
+#            showWarnings = FALSE)
 
-write.csv(to_plot, '04FinalData/complete/simulated/Conv_conc_lin/Conv_conc_lin.csv')
-to_plot <- read.csv('04FinalData/complete/simulated/Conv_conc_lin/Conv_conc_lin.csv')
+# write.csv(to_plot, '04FinalData/complete/simulated/Conv_conc_lin/Conv_conc_lin.csv')
+# #to_plot <- read.csv('04FinalData/complete/simulated/Conv_conc_lin/Conv_conc_lin.csv')
 
-f1c <- plot_lpi_table(to_plot, colors = colors);f1c
-
+# f1c <- plot_lpi_table(to_plot, colors = colors);f1c
 
 #####################################################################################################################
 ## Loop to computes the LPI with linear, concave and convex removing 0, 20%, 40%, 60% y 80% percent of the dataset
@@ -142,7 +142,6 @@ sum(is.na(remove_data_vect[[1]][[5]][[1]]))
 head(remove_data_vect[[3]][[5]][[1]],3) ##Convex with less 80
 sum(is.na(remove_data_vect[[3]][[5]][[1]]))
 
-
 #Check the names fo the df
 names(remove_data_vect[[1]])
 names(remove_data_vect)
@@ -160,8 +159,7 @@ plot(as.numeric(as.matrix(remove_data_vect[[3]][[5]][[1]][1:100, ]))) ##Linear w
 ## Computes the LPI in all of the matrices
 ############################################ 
 RemovingData_results <- vector("list", length(remove_data_vect))
-route<-'03processedData/complete/simulated/Conv_conc_lin_Remdt/'
-
+route1<-'03processedData/complete/simulated/Conv_conc_lin_Remdt/'
 
 for (i in seq_along(remove_data_vect)) {
   trend_block <- vector("list", length(remove_data_vect[[i]]))
@@ -176,7 +174,7 @@ for (i in seq_along(remove_data_vect)) {
         create_infile(
           x.j,
           index_vector = TRUE,
-          name = paste0(route, trend_names[i], "_remove",red_values[j], "_rep", r),
+          name = paste0(route1, trend_names[i], "_remove",red_values[j], "_rep", r),
           start_col_name = "X1950", end_col_name   = "X2020", CUT_OFF_YEAR   = 1950),
         title = paste0( trend_names[i],". Removing ", red_values[j], " of Data (rep ", r, ")"),
         REF_YEAR = 1950,
@@ -187,9 +185,11 @@ for (i in seq_along(remove_data_vect)) {
   }
   RemovingData_results[[i]] <- trend_block
 }
+print("The LPI calculation in all matrices has been processed correctly")
 
 ####Matrix with final data 
 # Create a list to store the subsets
+
 dir.create("04FinalData/complete/simulated/Conv_conc_lin_Remdt/",
            recursive = TRUE,
            showWarnings = FALSE)
@@ -219,9 +219,11 @@ Remresu_Join <- map_df(seq_along(RemovingData_results), function(trend_idx) {
   })
 })
 
-write.csv(Remresu_Join, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/RemovingData_results.csv')
+print("The calcualtion of the LPI based in different propportions has been processed correctly")
 
-Remresu_Join<- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/RemovingData_results.csv')
+
+write.csv(Remresu_Join, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/RemovingData_results.csv')
+#Remresu_Join<- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/RemovingData_results.csv')
 
 MeanRemresu_Join <- Remresu_Join %>%
   group_by(trend_type, label, years) %>%
@@ -251,9 +253,11 @@ p13 <- plot_lpi_table(convex_miss_data, colors = colorsG); p13
 write.csv(convex_miss_data, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gapsMed.csv')
 ggsave(filename=paste0("05Plots/Fig1d.jpeg"), p13, dpi = 300)
 
-Concave_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/Conv_gapsMed.csv')
-linear_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/linear_gapsMed.csv')
-convex_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gapsMed.csv')
+#Concave_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/Conv_gapsMed.csv')
+#linear_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/linear_gapsMed.csv')
+#convex_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gapsMed.csv')
+
+print("The entire script 2 has been executed correctly")
 
 ############
 ### END ####

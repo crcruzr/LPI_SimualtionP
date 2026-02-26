@@ -6,9 +6,6 @@ library(tidyverse)
 library(rlpi)
 library(data.table)
 
-route <- '03processedData/'
-exroute <- '05Plots/'
-
 #functions 
 source('01Scripts/Functions.r')
 
@@ -51,6 +48,7 @@ mask0[is.na(mask0)] <- FALSE
 
 ## simulated data matrix
 load(file = '03processedData/Species_simulations.RData')
+
 # Simulate data matrix for LPI structure
 # Select randomly the population generation
 cx <- ncol(species_data_clean) - length(years) + 1
@@ -84,7 +82,7 @@ dir.create("04FinalData/constrain/napermutation_unique/",
 
 lpi_resultNA$years <- years
 write.csv(lpi_resultNA, '04FinalData/constrain/napermutation_unique/napermutation_unique.csv')
-lpi_resultNA <- read.csv('04FinalData/constrain/napermutation_unique/napermutation_unique.csv')
+#lpi_resultNA <- read.csv('04FinalData/constrain/napermutation_unique/napermutation_unique.csv')
 
 
 colr <- c("#9467bd", "#c5b0d5")  # Purple + lighter purple
@@ -150,7 +148,7 @@ dir.create("04FinalData/constrain/zeropermutation_unique/",
 
 lpi_resultzero$years <- years
 write.csv(lpi_resultzero, '04FinalData/constrain/zeropermutation_unique/zeropermutation_unique.csv')
-lpi_resultzero <- read.csv('04FinalData/constrain/zeropermutation_unique/zeropermutation_unique.csv')
+#lpi_resultzero <- read.csv('04FinalData/constrain/zeropermutation_unique/zeropermutation_unique.csv')
 
 f2c <- plot_lpi(lpi_resultzero, colr = colr, label_name = "Simulation - \n Zero in real data");f2c
 ggsave(filename="05Plots/Fig2c.jpeg", f2c, dpi = 300) ## plot used in the paper
