@@ -4,16 +4,15 @@
 02Documents/*
 03processedData/*
 05Plots/*
-lpi_temp/*
+lpi_temp/
 Rplots.pdf
-04FinalData/constrain/Zeropermutations copy*
-
 
 #Server
 jobs/*
 out/
 narval.sh
 .Rproj.user
+logs
 
 # Don't ignore these
 !01Scripts/
@@ -22,6 +21,10 @@ narval.sh
 !01Scripts/02_trends_LPI.r
 !01Scripts/03_SimConstrains_datapreparation.r
 !01Scripts/04_SimConstrains.r
+!01Scripts/SimConstrains0sIndepend.r
+!01Scripts/SimConstrainsNAIndepend.r
+!01Scripts/SimConstrainsNAZeroIndepend.r
+
 !01Scripts/05_Figs.R
 !05Plots/
 !05Plots/Fig1.jpeg
