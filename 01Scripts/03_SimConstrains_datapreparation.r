@@ -13,27 +13,22 @@ exroute <- '05Plots/'
 source('01Scripts/Functions.r')
 
 #Folders to be used during the process
-dir.create("03processedData/constrain/1_Zeropermutations/processing/",
+dir.create("03processedData/constrain/Zeropermutations/processing/",
            recursive = TRUE,
            showWarnings = FALSE)
 
-dir.create("03processedData/constrain/2_napermutations/processing/",
+dir.create("03processedData/constrain/napermutations/processing/",
            recursive = TRUE,
            showWarnings = FALSE)
 
-dir.create("03processedData/constrain/3_napermutations/processing/",
-           recursive = TRUE,
-           showWarnings = FALSE)
 
 # Set seed for reproducibility
 set.seed(42)
-
-lpi_data <- read.csv('00RawData/LPD_2024_public.csv')
-years <- as.numeric(gsub("X", "",(names(lpi_data)[grepl(paste0("^", "X", "[0-9]+$"),  names(lpi_data))]))) ## Modified to add the same number of years in the LPI
-print(years)
-S <- nrow(lpi_data) ## Modified to add the same number of rows in the LPI
+years <- 1950:2020 ## Modified to add the same number of years in the LPI
+S <- 35996 ## Modified to add the same number of rows in the LPI
 
 #Real LPI data
+lpi_data <- read.csv('00RawData/LPD_2024_public.csv')
 lpi_data_filtered <- lpi_data %>% select(matches("^X[0-9]")) #only years
 ##  NA's and zero
 lpi_data_filteredNAZero <- lpi_data %>% select(matches("^X[0-9]"))

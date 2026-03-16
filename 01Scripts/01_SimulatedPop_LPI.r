@@ -21,18 +21,25 @@ num_species <- 40000
 #species_data <- data.frame(matrix(NA, nrow = num_species, ncol = num_years))
 species_data <- matrix(NA, nrow = num_species, ncol = num_years)
 ran_pop_sizes <- numeric(num_species)
+#ran_pop_sizes <- NA
 start_time <- Sys.time()
+
 
 for (i in 1:num_species) {
     init_pop <- as.integer(10^(runif(1, min = 1.1, max = 5)))
     
     sim_result <- pop_growth(N0 = init_pop, gen = num_years - 1, stochastic_r = TRUE, stochastic_K = TRUE, plotting = FALSE)
+    
     # Add observation error
     obs_error <- rbinom( n = length(sim_result),  size = round(sim_result), p = 0.1)
     sim_result <- sim_result + obs_error
     species_data[i,] <- sim_result
     ran_pop_sizes[i] <- init_pop
+    
+    #ran_pop_sizes <- c(ran_pop_sizes, init_pop)
 } ;end_time <- Sys.time()
+
+
 end_time - start_time #37.68823 mins
 
 # Remove time series with zero values after 200 generations
@@ -49,14 +56,12 @@ dir.create(paste0(route))
 save(species_data_clean, file = paste0(route,'Species_simulations.RData'))
 
 # Load and plot subset data
+load(file = paste0('03processedData/Species_simulations.RData'))
 plot(as.numeric(species_data_clean[sample(1:nrow(species_data_clean),1),]))
 
 # Simulate data matrix for LPI structure
-lpi_data <- read.csv('00RawData/LPD_2024_public.csv') #inclde in this folder the LPD data
-years <- as.numeric(gsub("X", "",(names(lpi_data)[grepl(paste0("^", "X", "[0-9]+$"),  names(lpi_data))]))) ## Modified to add the same number of years in the LPI
-print(years)
-S <- nrow(lpi_data) ## Modified to add the same number of rows in the LPI
-print(S)
+years <- 1950:2020 ## Modified to add the same number of years in the LPI
+S <- 35996 ## Modified to add the same number of rows in the LPI
 
 # Select the last population generation
 cx <- ncol(species_data_clean) - length(years) + 1
@@ -92,7 +97,7 @@ dir.create("04FinalData/complete/simulated/Complete_dataSet",
            showWarnings = FALSE)
 
 write.csv(lpi_result, '04FinalData/complete/simulated/Complete_dataSet/Complete_dataSet.csv')
-#lpi_result <- read.csv('04FinalData/complete/simulated/Complete_dataSet/Complete_dataSet.csv')
+lpi_result <- read.csv('04FinalData/complete/simulated/Complete_dataSet/Complete_dataSet.csv')
 
 # Read and process real LPI data
 ###################################
@@ -100,15 +105,16 @@ write.csv(lpi_result, '04FinalData/complete/simulated/Complete_dataSet/Complete_
 #To process it you should download the LPD data from the LPI website https://www.livingplanetindex.org/data_portal and save it in the folder 00RawData.
 # The file name should be adjusted if it is different
 
+lpi_data <- read.csv('00RawData/LPD_2024_public.csv') #inclde in this folder the LPD data
+
+
 # Compute the LPI using the empirical population data present in the LPD 
 dir.create("03processedData/complete/real/Complete_dataSet",
            recursive = TRUE,
            showWarnings = FALSE)
-lpi_data_simple <- lpi_data %>% select(matches("^X[0-9]"))
-lpi_data_simple <- bino_id(lpi_data_simple, years, S)
 
 lpi_resultR <- LPIMain(
-  create_infile(lpi_data_simple, index_vector = TRUE, name = '03processedData/complete/real/Complete_dataSet', 
+  create_infile(lpi_data, index_vector = TRUE, name = '03processedData/complete/real/Complete_dataSet', 
                 start_col_name = "X1950", end_col_name = "X2020", CUT_OFF_YEAR = 1950),
   title = 'LPI Results Real Data', REF_YEAR = 1950, PLOT_MAX = 2020, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
@@ -125,7 +131,7 @@ dir.create("04FinalData/complete/real/Complete_dataSet",
            showWarnings = FALSE)
 
 write.csv(lpi_resultR, '04FinalData/complete/real/Complete_dataSet/Complete_dataSet.csv')
-#lpi_resultR <- read.csv('04FinalData/complete/real/Complete_dataSet/Complete_dataSet.csv')
+lpi_resultR <- read.csv('04FinalData/complete/real/Complete_dataSet/Complete_dataSet.csv')
 
 ###############################
 ### Variation in the simulation

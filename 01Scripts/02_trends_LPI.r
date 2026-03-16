@@ -12,11 +12,8 @@ source('01Scripts/Functions.r')
 set.seed(42)
 
 # Trend simulation and comparison
-lpi_data <- read.csv('00RawData/LPD_2024_public.csv')
-years <- as.numeric(gsub("X", "",(names(lpi_data)[grepl(paste0("^", "X", "[0-9]+$"),  names(lpi_data))]))) ## Modified to add the same number of years in the LPI
-print(years)
-S <- nrow(lpi_data) ## Modified to add the same number of rows in the LPI
-
+years <- 1950:2020
+S <- 35996 ## Modified to add the same number of rows in the LPI
 x <- seq(0, 1, length.out = length(years))
 vect_conv <- round(((60 * (1 - x^0.2)) + 40), 2); plot(vect_conv)
 vect_linD <- round(((60 * (1 - x^1)) + 40), 2);  plot(vect_linD)
@@ -42,11 +39,8 @@ for (i in 1:3) {
 } 
 
 # Verify similarity between trend matrices - It should be different 
-print('Are the convex and linear identical?')
 identical(trend_matrices[[1]], trend_matrices[[2]])
-print('Are the convext and concave identical?')
 identical(trend_matrices[[1]], trend_matrices[[3]])
-print('Are the linear and concave identical?')
 identical(trend_matrices[[2]], trend_matrices[[3]])
 
 plot(as.numeric(as.matrix(trend_matrices[[1]][1:100, ])))
@@ -78,7 +72,7 @@ for (i in 1:length(lpi_trend_matrices)) {
     title = trend_names[i], REF_YEAR = 1950, PLOT_MAX = 2020, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
   )
 }
---
+
 # Unify plots
 labels <- c("concave", "linear", "convex")
 colors <- c("#558ed5", "#77933d", "#4a452a")  # your specified colors
