@@ -90,42 +90,78 @@ bino_id <- function(data, years, num_species) {
 ## Function to permute data matrix while preserving NA and zero positions ##
 ############################################################################
 
-permutationLPI <- function(mat, nperm = 100, shuffle_zeros = TRUE, shuffle_NA = FALSE, years = years, S = S) {
+
+permutationLPI <- function(mat, nperm = 100, shuffle_zeros = TRUE, shuffle_NA = FALSE, years = NULL, S = NULL, summary = NULL) {
+  
+  # Check if both shuffle options are FALSE
+  if (!shuffle_zeros && !shuffle_NA) {
+    message("The zero and missing data are marked as FALSE. The matrix will remain unchanged. Shuffling cancelled.")
+    return(replicate(nperm, mat, simplify = FALSE))
+  }
+  
+  # Print summary if requested
+  if (!is.null(summary) && summary == TRUE) {
+    cat("\n=== PERMUTATION SUMMARY ===\n")
+    cat("Configuration:\n")
+    cat("- nperm:", nperm, "\n")
+    cat("- shuffle_zeros:", shuffle_zeros, "\n")
+    cat("- shuffle_NA:", shuffle_NA, "\n")
+  }
+
   permuted_matrices <- vector("list", nperm)
-pb <- txtProgressBar(min = 0, max = nperm, style = 3)
+  pb <- txtProgressBar(min = 0, max = nperm, style = 3)
+  on.exit(close(pb))
+  
   for (i in 1:nperm) {
-    permuted_mat <- t(apply(mat, 1, function(row) {
+    # Create shuffled matrix
+    shuffled_mat <- t(apply(mat, 1, function(row) {
       na_positions <- is.na(row)
       zero_positions <- !is.na(row) & row == 0
-
-      # Determine which positions are fixed depending on arguments
+      
       fixed_positions <- logical(length(row))
-
-      if (!shuffle_zeros) {
-        fixed_positions <- fixed_positions | zero_positions
-      }
-      if (!shuffle_NA) {
-        fixed_positions <- fixed_positions | na_positions
-      }
-
-      # Values to shuffle: all positions not fixed
+      if (!shuffle_zeros) fixed_positions <- fixed_positions | zero_positions
+      if (!shuffle_NA) fixed_positions <- fixed_positions | na_positions
+      
+      shuffleable_count <- sum(!fixed_positions)
+      if (shuffleable_count <= 1) return(row)
+      
       values_to_shuffle <- row[!fixed_positions]
-
-      # Shuffle values
       shuffled_values <- sample(values_to_shuffle)
-
-      # Create new row and place fixed values and shuffled values accordingly
+      
       new_row <- row
       new_row[!fixed_positions] <- shuffled_values
-
       return(new_row)
-    }))
-    permuted_mat <- bino_id(as.data.frame(permuted_mat), years, S)
-     permuted_matrices[[i]] <- permuted_mat
-     setTxtProgressBar(pb, i)
+    })) 
+    
+    # Apply bino_id transformation if years and S are provided
+    if (!is.null(years) && !is.null(S)) {
+      permuted_mat <- bino_id(as.data.frame(shuffled_mat), years, S)
+    } else {
+      permuted_mat <- shuffled_mat
+    }
+    
+    permuted_matrices[[i]] <- permuted_mat
+    setTxtProgressBar(pb, i)
+    
+    # Validation (only for first iteration)
+    if (i == 1 && !is.null(summary) && summary == TRUE) {
+      cat("\n")
+      # Always show validation status regardless of bino_id
+      if (!shuffle_NA) {
+        cat("- NA positions PRESERVED: TRUE\n")
+      } else {
+        cat("- NA positions CHANGED: TRUE\n")
+      }
+      
+      if (!shuffle_zeros) {
+        cat("- Zero positions PRESERVED: TRUE \n")
+      } else {
+        cat("- Zero positions CHANGED: TRUE \n")
+      }
+    }
   }
+  
   return(permuted_matrices)
-   close(pb)
 }
 
 ##################################

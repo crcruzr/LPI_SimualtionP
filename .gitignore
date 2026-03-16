@@ -23,6 +23,9 @@ narval.sh
 !01Scripts/03_SimConstrains_datapreparation.r
 !01Scripts/04_SimConstrains.r
 !01Scripts/05_Figs.R
+!01Scripts/SimConstrains0sIndepend.r
+!01Scripts/SimConstrainsNAIndepend.r
+!01Scripts/SimConstrainsNAZeroIndepend.r
 !05Plots/
 !05Plots/Fig1.jpeg
 !05Plots/Fig1a.jpeg
