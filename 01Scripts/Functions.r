@@ -24,7 +24,6 @@ pop_growth <- function(N0 = NULL, r = NULL, K = NULL, gen, stochastic_r = FALSE,
   pop_size <- numeric(gen + 1)
   pop_size[1] <- N0
  
-  
   for (i in 1:gen) {
     # If stochasticity in r is enabled, apply log-normal environmental noise
     r_curr <- if (stochastic_r) r * exp(rnorm(1, 0, 0.15)) else  r
@@ -42,7 +41,6 @@ pop_growth <- function(N0 = NULL, r = NULL, K = NULL, gen, stochastic_r = FALSE,
     pop_size[i + 1] <- round(pop_size[i] * exp(r_curr * (1 - pop_size[i] / K_curr)))
   }
   
-   
   # Plot results if requested
   if (plotting) {
     plot(0:gen, pop_size, type = 'l', col = 'blue', ylim = c(0, max(pop_size)),
@@ -90,12 +88,30 @@ bino_id <- function(data, years, num_species) {
 ## Function to permute data matrix while preserving NA and zero positions ##
 ############################################################################
 
-permutationLPI <- function(mat, nperm = 100, shuffle_zeros = TRUE, shuffle_NA = FALSE, years = years, S = S) {
+permutationLPI <- function(mat, nperm = 100, shuffle_zeros = TRUE, shuffle_NA = FALSE, years = NULL, S = NULL, summary = NULL) {
+  
+  # Check if both shuffle options are FALSE
+  if (!shuffle_zeros && !shuffle_NA) {
+    message("The zero and missing data are marked as FALSE. The matrix will remain unchanged. Shuffling cancelled.")
+    return(replicate(nperm, mat, simplify = FALSE))
+  }
+  
+  # Print summary if requested
+  if (!is.null(summary) && summary == TRUE) {
+    cat("\n=== PERMUTATION SUMMARY ===\n")
+    cat("Configuration:\n")
+    cat("- nperm:", nperm, "\n")
+    cat("- shuffle_zeros:", shuffle_zeros, "\n")
+    cat("- shuffle_NA:", shuffle_NA, "\n")
+  }
+
   permuted_matrices <- vector("list", nperm)
 pb <- txtProgressBar(min = 0, max = nperm, style = 3)
+  on.exit(close(pb))
+  
   for (i in 1:nperm) {
     permuted_mat <- t(apply(mat, 1, function(row) {
-      na_positions <- is.na(row)
+            na_positions <- is.na(row)
       zero_positions <- !is.na(row) & row == 0
 
       # Determine which positions are fixed depending on arguments
@@ -120,35 +136,62 @@ pb <- txtProgressBar(min = 0, max = nperm, style = 3)
 
       return(new_row)
     }))
+
+# Apply bino_id transformation if years and S are provided
+    if (!is.null(years) && !is.null(S)) {
     permuted_mat <- bino_id(as.data.frame(permuted_mat), years, S)
+    } else {
+      permuted_mat <- shuffled_mat
+    }
+    
      permuted_matrices[[i]] <- permuted_mat
      setTxtProgressBar(pb, i)
+  
+    # Validation (only for first iteration)
+    if (i == 1 && !is.null(summary) && summary == TRUE) {
+      cat("\n")
+      # Always show validation status regardless of bino_id
+      if (!shuffle_NA) {
+        cat("- NA positions PRESERVED: TRUE\n")
+      } else {
+        cat("- NA positions CHANGED: TRUE\n")
+      }
+      
+      if (!shuffle_zeros) {
+        cat("- Zero positions PRESERVED: TRUE \n")
+      } else {
+        cat("- Zero positions CHANGED: TRUE \n")
+      }
+    }
   }
   return(permuted_matrices)
-   close(pb)
-}
+  }
 
 ##################################
 ## Function to plot LPI results ##
 ##################################
 
-plot_lpi <- function(data, colr, label_name = "LPIX", show_label = TRUE) {
+plot_lpi_table <- function(data, colr, label_name = "LPIX", show_label = TRUE) {
   if (!"years" %in% colnames(data)) {
     stop("The data must contain a 'years' column")
   }
-  # Add a new column with the label_name for mapping fill and color
-  data$label <- label_name
   
-  p <- ggplot(data, aes(x = years)) +
+# Add a new column with the label_name for mapping fill and color
+    
+  if (!"label" %in% names(data) | (length(unique(data$label)) == 1)) {
+  data$label <- label_name
+  }
+
+  p <- ggplot(data, aes(x = years, group = label)) +
     geom_ribbon(aes(ymin = CI_low, ymax = CI_high, fill = label), alpha = 0.2) +
     geom_hline(yintercept = 1, linetype = "solid", size = 0.5, color = "#000000") +
     geom_line(aes(y = LPI_final, color = label), size = 1) +
-    scale_fill_manual(name = NULL, values = setNames(colr[2], label_name)) +
-    scale_color_manual(name = NULL, values = setNames(colr[1], label_name)) +
+    scale_fill_manual(name = NULL, values = colr) +
+    scale_color_manual(name = NULL, values = colr) +
     labs(x = "Year", y = "Index", title = "") +
     scale_x_continuous(breaks = seq(1950, 2020, by = 10), expand = c(0.03, 0.05)) +
     scale_y_continuous(limits = c(0, 2), expand = c(0.05, 0.002)) +
-    guides(color = guide_legend(override.aes = list(fill = colr[2], color = colr[1], size = 15, alpha = 0.2))) +
+    guides(color = guide_legend(override.aes = list(size = 3))) +
     geom_vline(xintercept = 1950, color = "gray80", size = 0.5) +
     geom_hline(yintercept = 0, color = "gray80", size = 0.5) +
     theme(
@@ -162,90 +205,85 @@ plot_lpi <- function(data, colr, label_name = "LPIX", show_label = TRUE) {
       legend.text = element_text(size = 25),
       legend.position = c(0.75, 0.8),
       panel.grid.major.y = element_line(size = 0.4, color = "gray80"),
-      panel.grid.major.x = element_line(size = 0.4, color = "gray90")
-    )
+      panel.grid.major.x = element_line(size = 0.4, color = "gray90"))
   
-  if (show_label) {
+  if (show_label == FALSE) {
+    p <- p + theme(legend.position = "none")
+    
+  } else if (show_label & (length(unique(data$label)) == 1)) {
     p <- p + guides(
       color = guide_legend(
-        override.aes = list(fill = colr[2], color = colr[1], size = 15, alpha = 0.2)
-      )
+        override.aes = list(fill = colr[2], color = colr[1], size = 15, alpha = 0.2))
     )
   } else {
-    p <- p + theme(legend.position = "none")
+    p <- p 
+    
   }
-  
+
   return(p)
 }
 
 #########################################################
 ## Function to plot for data obtained medianted a list ##
 #########################################################
+lpi_multiplot <- function(data, colr = c("#1f77b4", "#ff7f0e"), validate_simulations = TRUE) {
+# Usage:
+# plot_result <- create_lpi_plot(your_data, colr = c("#1f77b4", "#ff7f0e"))
+  
+  # Validation: Check if there's more than one simulation
+if (validate_simulations) {
+    n_sims <- length(unique(data$sim))
+    if (n_sims <= 1) {
+      warning("Only one or zero simulations found. Consider use the plot_lpi_table function.")
+    }
+    message(paste("Number of simulations:", n_sims))
+  }
 
-plot_lpi_table <- function(data, colors, interaction = FALSE, interaction_label = "Simulation with", show_label = FALSE, label_name = NULL) {
-  # Check required columns
-  required_cols <- c("years", "LPI_final", "CI_low", "CI_high", "sim", "label")
-  missing_cols <- setdiff(required_cols, names(data))
-  if(length(missing_cols) > 0) {
-    stop("The data is missing these required columns: ", paste(missing_cols, collapse = ", "))
-  }
-  
-  # Override label if label_name is provided
-  if (!is.null(label_name)) {
-    data$label <- label_name
-  } else if (interaction) {
-    data$label <- interaction_label
-  }
-  
-  # Prepare colors based on unique labels
-  unique_labels <- unique(data$label)
-  fill_colors <- setNames(rep(colors, length.out = length(unique_labels)), unique_labels)
-  line_colors <- fill_colors
-  
-  p <- ggplot(data, aes(x = years, y = LPI_final)) + # i've removed group and iv'e added in the next line
-    geom_ribbon(aes(ymin = CI_low, ymax = CI_high, fill = label, group = label), alpha = 0.2, color = NA) +
-    geom_line(aes(color = label), size = 1) +
-    scale_fill_manual(name = NULL, values = fill_colors) +
-    scale_color_manual(name = NULL, values = line_colors) +
-    geom_hline(yintercept = 1, linetype = "solid", size = 1, color = "#666666") +
+   # Create the plot
+  pglpi <- ggplot(data, aes(x = years, y = LPI_final, group = sim)) +
+    geom_ribbon(aes(ymin = CI_low, ymax = CI_high, fill = label), 
+                alpha = 0.2, color = NA) +
+    geom_line(aes(color = label), size = 0.1) +
+    scale_fill_manual(name = NULL, 
+                      values = setNames(colr[2], unique(data$label))) +
+    scale_color_manual(name = NULL, 
+                       values = setNames(colr[1], unique(data$label))) +
+    geom_hline(yintercept = 1, linetype = "solid", size = 0.5, color = "black"  ) +
     coord_cartesian(ylim = c(0.0, 2)) +
     scale_x_continuous(breaks = seq(1950, 2020, by = 10), expand = c(0.03, 0.05)) +
     scale_y_continuous(limits = c(0, 2), expand = c(0.05, 0.002)) +
+    guides(color = guide_legend(override.aes = list(fill = colr[2], 
+                                                    color = colr[1], 
+                                                    size = 15, 
+                                                    alpha = 0.2))) +
     labs(x = "Year", y = "Index", title = "") +
     geom_vline(xintercept = 1950, color = "gray80", size = 0.5) +
     geom_hline(yintercept = 0, color = "gray80", size = 0.5) +
-    guides(color = guide_legend(override.aes = list(size = 2))) +
     theme(
       panel.background = element_rect(fill = "white"),
       panel.border = element_rect(color = "black", fill = NA, size = 0.8),
       axis.title = element_text(size = 25),
-      axis.text.x = element_text(size = 20, hjust = 0.5, margin = margin(t = 5)),
+      axis.text.x = element_text(size = 20, hjust = 0.5, margin = margin(t = 5), angle = 0),
       axis.text.y = element_text(size = 20),
       axis.ticks.x = element_line(size = 0.8, color = "black"),
       axis.ticks.y = element_line(size = 0.8, color = "black"),
       legend.text = element_text(size = 25),
-      legend.position = c(0.75, 0.8),
+      legend.position = "none",
       panel.grid.major.y = element_line(size = 0.4, color = "gray80"),
       panel.grid.major.x = element_line(size = 0.4, color = "gray90")
     )
   
-  # Show or hide legend
-  if (!show_label) {
-    p <- p + theme(legend.position = "none")
-  }
-  
-  return(p)
+  return(pglpi)
 }
 
 ######################################
 #function toparalelize theprocesess ##
 #######################################
-
 process_permutation <- function(w = 1, base_path = getwd(), 
                                 title_prefix = "LPI Results") {
   
   # Define input and output directories
-  input_path <- file.path(base_path, "processing", sprintf("It_%d", w))
+  input_path <- file.path(base_path, "processing")
   output_dir <- file.path(base_path, "results")
   
   # Ensure the results directory exists
@@ -267,7 +305,7 @@ process_permutation <- function(w = 1, base_path = getwd(),
     ),
     title = paste(title_prefix, w),
     REF_YEAR = 1950,
-    PLOT_MAX = 2019,
+    PLOT_MAX = 2020,
     BOOT_STRAP_SIZE = 10,
     VERBOSE = FALSE,  
     SHOW_PROGRESS = TRUE

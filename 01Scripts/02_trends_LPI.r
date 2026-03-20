@@ -1,19 +1,21 @@
 library(rlpi)
-library(ggplot2)
 library(missMethods)
 library(tidyverse)
-library(RColorBrewer)
 library(data.table)
 
-route <- '03processedData/'
 source('01Scripts/Functions.r')
 
 # For reproducibility
 set.seed(42)
 
 # Trend simulation and comparison
-years <- 1950:2020
-S <- 35996 ## Modified to add the same number of rows in the LPI
+#To process it you should download the LPD data from the LPI website https://www.livingplanetindex.org/data_portal and save it in the folder 00RawData.
+# The file name should be adjusted if it is different
+lpi_data <- read.csv('00RawData/LPD_2024_public.csv') #inclde in this folder the LPD data
+
+years <- as.numeric(gsub("X", "",(names(lpi_data)[grepl(paste0("^", "X", "[0-9]+$"),  names(lpi_data))]))) ## Modified to add the same number of years in the LPI
+S <- nrow(lpi_data) ## Modified to add the same number of rows in the LPI
+
 x <- seq(0, 1, length.out = length(years))
 vect_conv <- round(((60 * (1 - x^0.2)) + 40), 2); plot(vect_conv)
 vect_linD <- round(((60 * (1 - x^1)) + 40), 2);  plot(vect_linD)
@@ -39,8 +41,11 @@ for (i in 1:3) {
 } 
 
 # Verify similarity between trend matrices - It should be different 
+print("are identical the matrix 1 and 2?")
 identical(trend_matrices[[1]], trend_matrices[[2]])
+print("are identical the matrix 1 and 3?")
 identical(trend_matrices[[1]], trend_matrices[[3]])
+print("are identical the matrix 2 and 3?")
 identical(trend_matrices[[2]], trend_matrices[[3]])
 
 plot(as.numeric(as.matrix(trend_matrices[[1]][1:100, ])))
@@ -75,7 +80,7 @@ for (i in 1:length(lpi_trend_matrices)) {
 
 # Unify plots
 labels <- c("concave", "linear", "convex")
-colors <- c("#558ed5", "#77933d", "#4a452a")  # your specified colors
+ colors <- c("#558ed5", "#77933d", "#4a452a")  # your specified colors
 
 to_plot<- out <- bind_rows(
   lapply(seq_along(high_results), function(i) {
@@ -92,10 +97,6 @@ dir.create("04FinalData/complete/simulated/Conv_conc_lin/",
            showWarnings = FALSE)
 
 write.csv(to_plot, '04FinalData/complete/simulated/Conv_conc_lin/Conv_conc_lin.csv')
-to_plot <- read.csv('04FinalData/complete/simulated/Conv_conc_lin/Conv_conc_lin.csv')
-
-f1c <- plot_lpi_table(to_plot, colors = colors);f1c
-
 
 #####################################################################################################################
 ## Loop to computes the LPI with linear, concave and convex removing 0, 20%, 40%, 60% y 80% percent of the dataset
@@ -133,16 +134,6 @@ for (g in seq_along(lpi_trend_matrices)) {
   names(trend_list) <- paste0("remove_", red_values)
   remove_data_vect[[g]] <- trend_list
 }
-
-#Test the matrices based on the comparison of the data count.
-sum(is.na(lpi_trend_matrices[[1]]))
-sum(is.na(remove_data_vect[[1]][[4]][[1]]))
-head(remove_data_vect[[1]][[4]],3) ##Convex with less 80
-sum(is.na(remove_data_vect[[1]][[5]][[1]]))
-head(remove_data_vect[[3]][[5]][[1]],3) ##Convex with less 80
-sum(is.na(remove_data_vect[[3]][[5]][[1]]))
-
-
 #Check the names fo the df
 names(remove_data_vect[[1]])
 names(remove_data_vect)
@@ -161,7 +152,6 @@ plot(as.numeric(as.matrix(remove_data_vect[[3]][[5]][[1]][1:100, ]))) ##Linear w
 ############################################ 
 RemovingData_results <- vector("list", length(remove_data_vect))
 route<-'03processedData/complete/simulated/Conv_conc_lin_Remdt/'
-
 
 for (i in seq_along(remove_data_vect)) {
   trend_block <- vector("list", length(remove_data_vect[[i]]))
@@ -220,7 +210,6 @@ Remresu_Join <- map_df(seq_along(RemovingData_results), function(trend_idx) {
 })
 
 write.csv(Remresu_Join, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/RemovingData_results.csv')
-
 Remresu_Join<- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/RemovingData_results.csv')
 
 MeanRemresu_Join <- Remresu_Join %>%
@@ -234,26 +223,18 @@ MeanRemresu_Join <- Remresu_Join %>%
 
 write.csv(MeanRemresu_Join, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/RemovingData_resultsMedian.csv')
 
-colorsG <- c("#558ed5", "#77933d", "#4a452a", "#d87c30", "#5b9aa0")
-
 Concave_miss_data  <-MeanRemresu_Join %>% filter(trend_type == "Concave Decrease")
-p11 <- plot_lpi_table(Concave_miss_data, colors = colorsG); p11
 write.csv(Concave_miss_data, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/Conv_gapsMed.csv')
-ggsave(filename=paste0("05Plots/Fig1f.jpeg"), p11, dpi = 300)
 
 linear_miss_data <- MeanRemresu_Join %>% filter(trend_type == "Linear Decrease" )
-p12 <- plot_lpi_table(linear_miss_data, colors = colorsG);p12
 write.csv(linear_miss_data, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/linear_gapsMed.csv')
-ggsave(filename=paste0("05Plots/Fig1e.jpeg"), p12, dpi = 300)
 
 convex_miss_data <- MeanRemresu_Join %>% filter(trend_type == "Convex Decrease")
-p13 <- plot_lpi_table(convex_miss_data, colors = colorsG); p13
 write.csv(convex_miss_data, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gapsMed.csv')
-ggsave(filename=paste0("05Plots/Fig1d.jpeg"), p13, dpi = 300)
 
-Concave_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/Conv_gapsMed.csv')
-linear_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/linear_gapsMed.csv')
-convex_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gapsMed.csv')
+#Concave_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/Conv_gapsMed.csv')
+#linear_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/linear_gapsMed.csv')
+#convex_miss_data <- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/convex_gapsMed.csv')
 
 ############
 ### END ####

@@ -1,9 +1,10 @@
 # Local
 00RawData/*
-01Scripts/*
+01Scripts/Other*
 02Documents/*
 03processedData/*
-05Plots/*
+04FinalData/*
+05Plots/Other*
 lpi_temp/
 Rplots.pdf
 
@@ -14,29 +15,5 @@ narval.sh
 .Rproj.user
 logs
 
-# Don't ignore these
-!01Scripts/
-!01Scripts/Functions.r
-!01Scripts/01_SimulatedPop_LPI.r
-!01Scripts/02_trends_LPI.r
-!01Scripts/03_SimConstrains_datapreparation.r
-!01Scripts/04_SimConstrains.r
-!01Scripts/SimConstrains0sIndepend.r
-!01Scripts/SimConstrainsNAIndepend.r
-!01Scripts/SimConstrainsNAZeroIndepend.r
 
-!01Scripts/05_Figs.R
-!05Plots/
-!05Plots/Fig1.jpeg
-!05Plots/Fig1a.jpeg
-!05Plots/Fig1b.jpeg
-!05Plots/Fig1c.jpeg
-!05Plots/Fig1d.jpeg
-!05Plots/Fig1e.jpeg
-!05Plots/Fig1f.jpeg
-!05Plots/Fig2.jpeg
-!05Plots/Fig2a1.jpeg
-!05Plots/Fig2b1.jpeg
-!05Plots/Fig2c1.jpeg
-!05Plots/Fig2d.jpeg
 !.gitkeep
