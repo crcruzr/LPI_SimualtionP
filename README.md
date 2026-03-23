@@ -26,8 +26,17 @@ Applies concave, linear, and convex trends to the simulated data and computes th
 ### `03_SimConstrains_datapreparation`
 Prepares the simulated data by introducing `NA` values and zeros following the structure observed in the LPD, and formats the data for permutation and iteration analyses.
 
-### `04_SimConstrains`
+### `04_Sim_constrains_na_and_zeros`
 Computes the LPI using simulated data with imposed `NA` values and zeros, varying their positions across iterations.
+
+### `05_Sim_constrains_zeros`
+Computes the LPI using simulated data with imposed zeros, varying their positions across iterations.
+
+### `06_Sim_constrains_na`
+Computes the LPI using simulated data with imposed `NA` values, varying their positions across iterations.
+
+### `07_Figs`
+Creates the graphs used on the paper.
 
 ---
 
@@ -47,7 +56,7 @@ Contains the final datasets used for analysis and reporting.
 ---
 
 ## `05Plots`
-Contains all figures and plots generated for the manuscript and supplementary materials.
+Contains all graphs generated for the manuscript and supplementary materials.
 
 ---
 
@@ -56,4 +65,6 @@ Contains all figures and plots generated for the manuscript and supplementary ma
 All analyses can be reproduced by running the scripts in the `01Scripts` directory in numerical order. 
 
 Intermediate outputs are stored in `03processedData`, and final results are written to `04FinalData`, with figures saved in `05Plots`.
+
+We utilized national High-Performance Computing (HPC) services for scripts 04, 05, and 06 in order to optimize the processing time of the analisys.
 
