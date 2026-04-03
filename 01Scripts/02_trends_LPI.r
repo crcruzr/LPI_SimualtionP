@@ -11,8 +11,8 @@ set.seed(42)
 # Trend simulation and comparison
 #To process it you should download the LPD data from the LPI website https://www.livingplanetindex.org/data_portal and save it in the folder 00RawData.
 # The file name should be adjusted if it is different
-lpi_data <- read.csv('00RawData/LPD_2024_public.csv') #inclde in this folder the LPD data
-
+lpi_data <- read.csv('00RawData/LPD_2024_public.csv') #include in this folder the LPD data
+lpi_data <- dplyr::filter(lpi_data, Replicate == 0) # Remove replicates
 years <- as.numeric(gsub("X", "",(names(lpi_data)[grepl(paste0("^", "X", "[0-9]+$"),  names(lpi_data))]))) ## Modified to add the same number of years in the LPI
 S <- nrow(lpi_data) ## Modified to add the same number of rows in the LPI
 
@@ -210,7 +210,7 @@ Remresu_Join <- map_df(seq_along(RemovingData_results), function(trend_idx) {
 })
 
 write.csv(Remresu_Join, '04FinalData/complete/simulated/Conv_conc_lin_Remdt/RemovingData_results.csv')
-Remresu_Join<- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/RemovingData_results.csv')
+#Remresu_Join<- read.csv('04FinalData/complete/simulated/Conv_conc_lin_Remdt/RemovingData_results.csv')
 
 MeanRemresu_Join <- Remresu_Join %>%
   group_by(trend_type, label, years) %>%

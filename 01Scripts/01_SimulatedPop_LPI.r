@@ -61,7 +61,8 @@ plot(as.numeric(species_data_clean[sample(1:nrow(species_data_clean),1),]))
 # Simulate data matrix for LPI structure
 #To process it you should download the LPD data from the LPI website https://www.livingplanetindex.org/data_portal and save it in the folder 00RawData.
 # The file name should be adjusted if it is different
-lpi_data <- read.csv('00RawData/LPD_2024_public.csv') #inclde in this folder the LPD data
+lpi_data <- read.csv('00RawData/LPD_2024_public.csv') #include in this folder the LPD data
+lpi_data = dplyr::filter(lpi_data, Replicate == 0) # Remove replicates
 
 years <- as.numeric(gsub("X", "",(names(lpi_data)[grepl(paste0("^", "X", "[0-9]+$"),  names(lpi_data))]))) ## Modified to add the same number of years in the LPI
 S <- nrow(lpi_data) ## Modified to add the same number of rows in the LPI
@@ -104,8 +105,13 @@ dir.create("03processedData/complete/real/Complete_dataSet",
            recursive = TRUE,
            showWarnings = FALSE)
 
+## unweighted population level LPI withreplicated excluded
+lpi_data_poplevel <- lpi_data
+lpi_data_poplevel$Binomial = paste0(lpi_data_poplevel$Binomial, "_", lpi_data_poplevel$ID)
+
+
 lpi_resultR <- LPIMain(
-  create_infile(lpi_data, index_vector = TRUE, name = '03processedData/complete/real/Complete_dataSet', 
+  create_infile(lpi_data_poplevel, index_vector = TRUE, name = '03processedData/complete/real/Complete_dataSet', 
                 start_col_name = "X1950", end_col_name = "X2020", CUT_OFF_YEAR = 1950),
   title = 'LPI Results Real Data', REF_YEAR = 1950, PLOT_MAX = 2020, BOOT_STRAP_SIZE = 1000, VERBOSE = FALSE
 )
