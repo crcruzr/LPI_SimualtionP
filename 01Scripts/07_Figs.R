@@ -14,7 +14,6 @@ colorsG <- c("#558ed5", "#77933d", "#4a452a", "#d87c30", "#5b9aa0")
 years <- 1950:2020 ## Modified to add the same number of years in the LPI
 
 ### Fig 1 ####
-
 lpi_result <- read.csv('04FinalData/complete/simulated/Complete_dataSet/Complete_dataSet.csv')
 f1a <- plot_lpi_table(lpi_result, colr,  show_label = F); f1a
 ggsave(filename=paste0("05Plots/Fig1a.jpeg"), f1a, dpi = 300) ## plot used in the paper
